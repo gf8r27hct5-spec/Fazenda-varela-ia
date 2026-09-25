@@ -28,6 +28,28 @@ export async function signIn(formData: FormData) {
   redirect('/?enviado=1');
 }
 
+export async function signInWithPassword(formData: FormData) {
+  const email = String(formData.get('email') || '').trim();
+  const password = String(formData.get('password') || '');
+  if (!email || !password) redirect('/?erro=senha');
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) redirect('/?erro=credenciais');
+  redirect('/painel');
+}
+
+export async function setAccountPassword(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/');
+  const password = String(formData.get('password') || '');
+  const confirmation = String(formData.get('confirmation') || '');
+  if (password.length < 12 || password !== confirmation) redirect('/painel/mais?erro=senha');
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) redirect('/painel/mais?erro=senha');
+  redirect('/painel/mais?salvo=senha');
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
