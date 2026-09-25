@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAnimal, createFarm, signIn, signOut } from './actions';
 
@@ -9,6 +10,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Par
   const { data: { user } } = await supabase.auth.getUser();
   const { data: farms, error: farmsError } = user ? await supabase.from('fazendas').select('id,nome,cidade,estado').order('criado_em') : { data: null, error: null };
   const farm = farms?.[0];
+  if (user && farm) redirect('/painel');
   const [animals, lots, milk, transactions, recentAnimals] = farm ? await Promise.all([
     supabase.from('animais').select('id', { count: 'exact', head: true }).eq('fazenda_id', farm.id).eq('status', 'ativo'),
     supabase.from('lotes').select('id', { count: 'exact', head: true }).eq('fazenda_id', farm.id).eq('ativo', true),

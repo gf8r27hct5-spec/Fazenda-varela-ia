@@ -1,0 +1,21 @@
+import Link from 'next/link';
+import { AppShell, Bars, Card, Empty, Heading, Stat } from '@/components/app-shell';
+import { farmContext, money, monthBounds, number, sum } from '@/lib/farm';
+export const dynamic='force-dynamic';
+export default async function Dashboard(){
+ const {db,farm}=await farmContext();const {start,end,label}=monthBounds();
+ const [a,l,t,m,s,p]=await Promise.all([
+ db.from('animais').select('id,valor_compra,status').eq('fazenda_id',farm.id),
+ db.from('lotes').select('id').eq('fazenda_id',farm.id).eq('ativo',true),
+ db.from('transacoes').select('tipo,valor,status,categoria,data_competencia,data_vencimento').eq('fazenda_id',farm.id),
+ db.from('producao_leite').select('litros,data_producao').eq('fazenda_id',farm.id).gte('data_producao',start).lt('data_producao',end),
+ db.from('estoque').select('nome,quantidade_atual,estoque_minimo,consumo_medio_dia').eq('fazenda_id',farm.id).eq('ativo',true),
+ db.from('pesagens').select('id').eq('fazenda_id',farm.id).limit(1)]);
+ if([a,l,t,m,s,p].some(r=>r.error)) throw new Error('Não foi possível carregar os indicadores.');
+ const animals=(a.data||[]).filter(x=>x.status==='ativo'), transactions=t.data||[],current=transactions.filter(x=>x.data_competencia>=start&&x.data_competencia<end),received=current.filter(x=>x.tipo==='receita'),spent=current.filter(x=>x.tipo==='despesa');
+ const pending=transactions.filter(x=>x.tipo==='despesa'&&x.status!=='pago');const cash=transactions.filter(x=>x.status==='pago').reduce((v,x)=>v+(x.tipo==='receita'?Number(x.valor):-Number(x.valor)),0);
+ const valuation=animals.every(x=>x.valor_compra!=null)&&animals.length?sum(animals,'valor_compra'):null;
+ const alerts=(s.data||[]).filter(x=>x.estoque_minimo!=null&&Number(x.quantidade_atual)<=Number(x.estoque_minimo));
+ const hasFinancial=transactions.length>0;
+ return <AppShell farm={farm} active="Início"><Heading eyebrow="Visão geral · sua propriedade" title="Bom dia, fazenda." aside={<span className="date-pill">{label}</span>}/><div className="hero-card"><span>FAZENDA EM FOCO</span><h2>{farm.nome}</h2><p>{farm.cidade||'Sua propriedade'} · {farm.estado||'PA'}</p><Link href="/painel/registrar" className="hero-button">+ Registrar agora</Link></div><div className="stat-grid"><Stat label="Resultado do mês" value={current.length?money(sum(received,'valor')-sum(spent,'valor')):'—'} detail={current.length?'Receitas menos despesas':'Sem lançamentos no mês'}/><Stat label="Caixa disponível" value={hasFinancial?money(cash):'—'} detail="Entradas menos saídas pagas"/><Stat label="Contas a pagar" value={pending.length?money(sum(pending,'valor')):'—'} detail={pending.length?`${pending.length} conta(s) em aberto`:'Nenhuma conta registrada'}/><Stat label="Valor do rebanho" value={money(valuation)} detail="Valor de compra informado"/></div><Card title="Seu rebanho"><div className="quick-grid"><Stat label="Animais ativos" value={animals.length} detail="cabeças"/><Stat label="Lotes ativos" value={l.data?.length??0} detail="lotes"/><Stat label="Leite no mês" value={(m.data||[]).length?`${number(sum(m.data||[],'litros'),1)} L`:'—'} detail="litros registrados"/><Stat label="Pesagens" value={p.data?.length?'Registradas':'—'} detail="histórico disponível"/></div><Link className="text-link" href="/painel/rebanho">Ver rebanho →</Link></Card><div className="two-col"><Card title="Receitas e despesas · mês"><Bars values={[sum(received,'valor'),sum(spent,'valor')]} labels={['Receitas','Despesas']}/><Link className="text-link" href="/painel/financeiro">Abrir financeiro →</Link></Card><Card title="Alertas da fazenda">{alerts.length?alerts.map(x=><p className="alert-row" key={x.nome}>⚠ {x.nome}: estoque em {number(Number(x.quantidade_atual),1)}</p>):<Empty title="Tudo tranquilo por aqui" description="Alertas de estoque baixo aparecerão automaticamente com seus dados reais."/>}<Link className="text-link" href="/painel/assistente">Consultar assistente →</Link></Card></div><div className="shortcut-grid">{[['Financeiro','/painel/financeiro','▤'],['Pesagens','/painel/pesagens','⚖'],['Leite','/painel/leite','◒'],['Estoque','/painel/estoque','▣']].map(([label,href,icon])=><Link href={href} key={href} className="shortcut"><span>{icon}</span><strong>{label}</strong><b>↗</b></Link>)}</div></AppShell>;
+}
