@@ -1,6 +1,6 @@
 # Fazenda Varela IA
 
-Aplicativo inicial em Next.js (App Router, TypeScript) conectado ao projeto Supabase existente. Login por link de e-mail, criação da fazenda e painel com contadores reais de animais, lotes, produção de leite e transações.
+Aplicativo inicial em Next.js (App Router, TypeScript) conectado ao projeto Supabase existente. Login por link de e-mail, criação da fazenda, cadastro e leitura de animais, e painel com contadores reais de animais, lotes, produção de leite e transações.
 
 ## Executar
 
@@ -16,10 +16,10 @@ Na Vercel, a URL e a chave publishable têm valores públicos padrão em `src/li
 
 ## Estrutura
 
-- `src/app`: tela inicial, ações de login e cadastro, callback da autenticação.
+- `src/app`: tela inicial, ações de login, cadastro da fazenda e de animais, callback da autenticação.
 - `src/lib/supabase`: cliente servidor e atualização de sessão no middleware.
-- O banco existente já contém tabelas protegidas por RLS; nenhum dado fictício é gravado automaticamente.
+- O banco existente já contém tabelas protegidas por RLS. A função usada pelas políticas fica no esquema `private` e pode ser executada pelo papel `authenticated`. Nenhum dado fictício é gravado automaticamente.
 
 ## Próximos passos
 
-Adicionar formulários e listas de animais, pesagens, leite e finanças, validação de entrada, papéis de equipe e deploy com variáveis de ambiente configuradas.
+Adicionar pesagens, leite e finanças, papéis de equipe e deploy com variáveis de ambiente configuradas.

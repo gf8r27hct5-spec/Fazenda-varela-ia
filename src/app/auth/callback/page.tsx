@@ -67,7 +67,7 @@ export default function AuthCallback() {
     <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, textAlign: 'center' }}>
       <div>
         <h1>{error ? 'Não foi possível confirmar seu acesso' : 'Confirmando seu acesso…'}</h1>
-        {error && <p>Peça um novo link de acesso e abra o mais recente no mesmo navegador.</p>}
+        {error && <p>Peça um novo link de acesso e abra o mais recente.</p>}
         {error && <Link href="/">Voltar ao início</Link>}
       </div>
     </main>

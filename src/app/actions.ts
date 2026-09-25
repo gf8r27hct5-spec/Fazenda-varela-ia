@@ -35,9 +35,35 @@ export async function createFarm(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect('/');
   const nome = String(formData.get('nome') || '').trim();
-  if (!nome) redirect('/?erro=nome');
+  if (!nome || nome.length > 120) redirect('/?erro=nome');
+  const { data: existing, error: lookupError } = await supabase.from('fazendas').select('id').limit(1);
+  if (lookupError) redirect('/?erro=consulta');
+  if (existing?.length) redirect('/');
   const { error } = await supabase.from('fazendas').insert({ nome, cidade: String(formData.get('cidade') || '').trim() || null, estado: 'PA', proprietario_id: user.id });
   if (error) redirect('/?erro=fazenda');
   revalidatePath('/');
   redirect('/');
+}
+
+export async function createAnimal(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect('/');
+
+  const identificacao = String(formData.get('identificacao') || '').trim();
+  const nome = String(formData.get('nome') || '').trim();
+  if (!identificacao || identificacao.length > 80 || nome.length > 120) redirect('/?erro=animal');
+
+  const { data: farm, error: farmError } = await supabase.from('fazendas')
+    .select('id').eq('proprietario_id', user.id).order('criado_em').limit(1).maybeSingle();
+  if (farmError || !farm) redirect('/?erro=consulta');
+
+  const { error } = await supabase.from('animais').insert({
+    fazenda_id: farm.id,
+    identificacao,
+    nome: nome || null,
+  });
+  if (error) redirect(error.code === '23505' ? '/?erro=animal-duplicado' : '/?erro=animal');
+  revalidatePath('/');
+  redirect('/?salvo=1');
 }
