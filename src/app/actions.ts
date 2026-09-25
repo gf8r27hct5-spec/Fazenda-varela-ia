@@ -21,7 +21,11 @@ export async function signIn(formData: FormData) {
         ? `https://${process.env.VERCEL_URL}`
         : 'http://localhost:3000');
   const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${siteUrl.replace(/\/$/, '')}/auth/callback` } });
-  redirect(error ? '/?erro=login' : '/?enviado=1');
+  if (error) {
+    const limited = error.status === 429 || error.code === 'over_email_send_rate_limit';
+    redirect(limited ? '/?erro=limite-email' : '/?erro=login');
+  }
+  redirect('/?enviado=1');
 }
 
 export async function signOut() {

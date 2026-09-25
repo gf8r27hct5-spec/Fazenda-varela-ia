@@ -21,7 +21,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Par
     <header className="top"><div className="brand"><span className="brand-mark">FV</span><span>FAZENDA VARELA <b>IA</b></span></div><span className="top-right">GESTÃO RURAL <span className="status">● SISTEMA ONLINE</span></span></header>
     <div className="content"><div className="eyebrow">PAINEL DE CONTROLE <span> / VISÃO GERAL</span></div>
       <div className="intro"><div><p className="kicker">CONTROLE EM TEMPO REAL</p><h1>Sua fazenda,<br/><em>sob controle.</em></h1><p className="subtitle">Animais, produção e finanças organizados em um só lugar.</p></div><div className="sun">✳</div></div>
-      {params.erro && <p className="notice error">{params.erro === 'animal-duplicado' ? 'Já existe um animal com esta identificação nesta fazenda.' : 'Não foi possível concluir a operação. Confira os dados e tente novamente.'}</p>}
+      {params.erro && <p className="notice error">{params.erro === 'animal-duplicado' ? 'Já existe um animal com esta identificação nesta fazenda.' : params.erro === 'limite-email' ? 'O Supabase atingiu o limite temporário de envio de e-mails. Aguarde antes de pedir outro link. Se você já entrou, abra o aplicativo no mesmo navegador usado anteriormente.' : 'Não foi possível concluir a operação. Confira os dados e tente novamente.'}</p>}
       {params.enviado && <p className="notice">Enviamos um link de acesso para seu e-mail. Abra o link mais recente.</p>}
       {params.salvo && <p className="notice">Animal cadastrado com sucesso.</p>}
       {dashboardError && <p className="notice error">Não foi possível carregar os dados da fazenda. Atualize a página; se persistir, avise o suporte.</p>}
