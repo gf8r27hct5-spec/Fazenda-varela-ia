@@ -10,7 +10,7 @@ export default async function Dashboard(){
  db.from('animais').select('id,valor_compra,status,sistema,criado_em').eq('fazenda_id',farm.id),
  db.from('lotes').select('id').eq('fazenda_id',farm.id).eq('sistema','corte').eq('ativo',true),
  db.from('transacoes').select('tipo,valor,status,categoria,data_competencia').eq('fazenda_id',farm.id).order('data_competencia',{ascending:false}).limit(500),
- db.from('producao_leite').select('litros,data_producao').eq('fazenda_id',farm.id).gte('data_producao',start).lt('data_producao',end),
+ db.from('producao_leite').select('litros,data_producao,animal_id').eq('fazenda_id',farm.id).gte('data_producao',start).lt('data_producao',end),
  db.from('estoque').select('nome,quantidade_atual,estoque_minimo,consumo_medio_dia').eq('fazenda_id',farm.id).eq('ativo',true),
  db.from('pesagens').select('id,data_pesagem').eq('fazenda_id',farm.id).order('data_pesagem',{ascending:false}).limit(1)]);
  if([a,l,t,m,s,w].some(r=>r.error)) throw new Error('Não foi possível carregar os indicadores.');
