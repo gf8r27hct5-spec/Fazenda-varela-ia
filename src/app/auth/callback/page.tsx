@@ -16,6 +16,7 @@ export default function AuthCallback() {
     async function confirm() {
       const query = new URLSearchParams(window.location.search);
       const fragment = new URLSearchParams(window.location.hash.slice(1));
+      const recovery = query.get('type') === 'recovery' || fragment.get('type') === 'recovery';
       const supabase = createBrowserClient(supabaseUrl, supabasePublishableKey, {
         auth: { detectSessionInUrl: false },
       });
@@ -25,7 +26,7 @@ export default function AuthCallback() {
         authError = new Error('O link expirou ou não pôde ser confirmado.');
       } else if (query.get('token_hash')) {
         const type = query.get('type');
-        if (type === 'email' || type === 'magiclink' || type === 'signup') {
+        if (type === 'email' || type === 'magiclink' || type === 'signup' || type === 'recovery') {
           const result = await supabase.auth.verifyOtp({
             token_hash: query.get('token_hash')!,
             type,
@@ -54,7 +55,7 @@ export default function AuthCallback() {
         setError(true);
         return;
       }
-      window.location.replace('/');
+      window.location.replace(recovery ? '/auth/nova-senha' : '/');
     }
 
     confirm().catch(() => {
@@ -67,8 +68,8 @@ export default function AuthCallback() {
     <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, textAlign: 'center' }}>
       <div>
         <h1>{error ? 'Não foi possível confirmar seu acesso' : 'Confirmando seu acesso…'}</h1>
-        {error && <p>Peça um novo link de acesso e abra o mais recente.</p>}
-        {error && <Link href="/">Voltar ao início</Link>}
+        {error && <p>O link pode ter expirado. Peça outro e abra o mais recente.</p>}
+        {error && <Link href="/?modo=recuperar">Recuperar acesso</Link>}
       </div>
     </main>
   );

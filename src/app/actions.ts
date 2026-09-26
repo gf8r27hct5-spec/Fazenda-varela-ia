@@ -6,21 +6,52 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { supabasePublishableKey, supabaseUrl } from '@/lib/supabase/config';
 
+const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` :
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')).replace(/\/$/, '');
+
+const emailClient = () => createSupabaseClient(supabaseUrl, supabasePublishableKey, {
+  auth: { flowType: 'implicit', persistSession: false, autoRefreshToken: false },
+});
+
+export async function createAccount(formData: FormData) {
+  const email = String(formData.get('email') || '').trim().toLowerCase();
+  const password = String(formData.get('password') || '');
+  const confirmation = String(formData.get('confirmation') || '');
+  if (!email.includes('@')) redirect('/?modo=cadastro&erro=email');
+  if (password.length < 12) redirect('/?modo=cadastro&erro=senha-curta');
+  if (password !== confirmation) redirect('/?modo=cadastro&erro=senhas-diferentes');
+  const { error } = await emailClient().auth.signUp({ email, password, options: { emailRedirectTo: `${siteUrl()}/auth/callback` } });
+  if (error) redirect(`/?modo=cadastro&erro=${error.status === 429 ? 'limite-email' : 'cadastro'}`);
+  redirect('/?modo=entrar&enviado=cadastro');
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = String(formData.get('email') || '').trim().toLowerCase();
+  if (!email.includes('@')) redirect('/?modo=recuperar&erro=email');
+  const { error } = await emailClient().auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl()}/auth/callback` });
+  if (error) redirect(`/?modo=recuperar&erro=${error.status === 429 ? 'limite-email' : 'recuperacao'}`);
+  redirect('/?modo=recuperar&enviado=recuperacao');
+}
+
+export async function saveRecoveredPassword(formData: FormData) {
+  const password = String(formData.get('password') || '');
+  const confirmation = String(formData.get('confirmation') || '');
+  if (password.length < 12 || password !== confirmation) redirect('/auth/nova-senha?erro=senha');
+  const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) redirect('/?modo=recuperar&erro=link-expirado');
+  const { error } = await db.auth.updateUser({ password });
+  if (error) redirect('/auth/nova-senha?erro=salvar');
+  redirect('/auth/nova-senha?salvo=1');
+}
+
 export async function signIn(formData: FormData) {
   const email = String(formData.get('email') || '').trim();
   if (!email) redirect('/?erro=email');
   // Email links may open in a different browser from the one that requested
   // them. The implicit flow does not require a PKCE verifier cookie there.
-  const supabase = createSupabaseClient(supabaseUrl, supabasePublishableKey, {
-    auth: { flowType: 'implicit', persistSession: false, autoRefreshToken: false },
-  });
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : 'http://localhost:3000');
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${siteUrl.replace(/\/$/, '')}/auth/callback` } });
+  const { error } = await emailClient().auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: `${siteUrl()}/auth/callback` } });
   if (error) {
     const limited = error.status === 429 || error.code === 'over_email_send_rate_limit';
     redirect(limited ? '/?erro=limite-email' : '/?erro=login');
@@ -88,19 +119,37 @@ export async function createAnimal(formData: FormData) {
   const modulo = String(formData.get('modulo') || 'corte');
   if (!['corte','leite'].includes(modulo)) redirect('/painel/rebanho?erro=1');
   const categoria = String(formData.get('categoria') || '').trim() || (modulo === 'leite' ? 'Vaca leiteira' : 'Corte');
+  const status = modulo === 'corte' ? String(formData.get('status') || 'ativo') : 'ativo';
+  if (!['ativo','vendido','abatido','morto'].includes(status)) redirect('/painel/rebanho?erro=1');
   if (loteId) { const { data: lot } = await supabase.from('lotes').select('id').eq('id', loteId).eq('fazenda_id', farm.id).eq('sistema','corte').maybeSingle(); if (!lot) redirect(`/painel/${modulo === 'leite' ? 'leite' : 'rebanho'}?erro=1`); }
+  const bezerroId = modulo === 'leite' ? String(formData.get('bezerro_id') || '') : '';
+  if (bezerroId) { const { data: calf } = await supabase.from('animais').select('id').eq('id', bezerroId).eq('fazenda_id',farm.id).eq('sistema','leite').maybeSingle(); if (!calf) redirect('/painel/leite?erro=1'); }
+  const photo = formData.get('foto');
+  let photoPath: string | null = null;
+  if (photo instanceof File && photo.size) {
+    const extensions: Record<string,string> = {'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/heic':'heic'};
+    const ext = extensions[photo.type];
+    if (!ext || photo.size > 3670016) redirect(`/painel/${modulo === 'leite' ? 'leite' : 'rebanho'}?erro=foto`);
+    photoPath = `${farm.id}/${crypto.randomUUID()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from('fotos-animais').upload(photoPath, photo, {contentType: photo.type, upsert:false});
+    if (uploadError) redirect(`/painel/${modulo === 'leite' ? 'leite' : 'rebanho'}?erro=foto`);
+  }
   const { error } = await supabase.from('animais').insert({
-    fazenda_id: farm.id, identificacao, nome: nome || null, sistema: modulo, lote_id: modulo === 'corte' ? (loteId || null) : null,
+    fazenda_id: farm.id, identificacao, nome: nome || null, sistema: modulo, lote_id: modulo === 'corte' ? (loteId || null) : null, status,
     situacao_leite: modulo === 'leite' ? String(formData.get('situacao_leite') || 'Em lactação') : null,
     categoria, sexo: String(formData.get('sexo') || '').trim() || null, raca: String(formData.get('raca') || '').trim() || null,
     data_nascimento: String(formData.get('data_nascimento') || '').trim() || null, peso_entrada: formData.get('peso_entrada') ? Number(formData.get('peso_entrada')) : null,
+    peso_atual: formData.get('peso_atual') ? Number(formData.get('peso_atual')) : null,
     data_entrada: String(formData.get('data_entrada') || '').trim() || null, valor_compra: formData.get('valor_compra') ? Number(formData.get('valor_compra')) : null,
     observacoes: String(formData.get('observacoes') || '').trim() || null,
-    origem: String(formData.get('origem') || '').trim() || null,
+    origem: String(formData.get('origem') || '').trim() || null, foto_url: photoPath, bezerro_id: bezerroId || null,
     data_ultimo_parto: modulo === 'leite' ? String(formData.get('data_ultimo_parto') || '') || null : null,
     proxima_previsao_parto: modulo === 'leite' ? String(formData.get('proxima_previsao_parto') || '') || null : null,
   });
-  if (error) redirect(`/painel/${modulo === 'leite' ? 'leite' : 'rebanho'}?erro=1`);
+  if (error) {
+    if (photoPath) await supabase.storage.from('fotos-animais').remove([photoPath]);
+    redirect(`/painel/${modulo === 'leite' ? 'leite' : 'rebanho'}?erro=1`);
+  }
   revalidatePath('/painel');
   redirect(`/painel/${modulo === 'leite' ? 'leite' : 'rebanho'}?salvo=1`);
 }
