@@ -21,7 +21,7 @@
 .overline { color: #728a57; letter-spacing: .18em; font-size: 10px; }
 .hero-card {
   min-height: 338px;
-  background-image: linear-gradient(90deg, #042c23e8 0%, #092f25c9 40%, #0b332662 100%), url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1600&q=85');
+  background-image: linear-gradient(90deg, #042c23e8 0%, #092f25c9 40%, #0b332662 100%), url('/rural-cattle.jpg');
   background-position: center 48%;
   border-radius: 28px;
   padding: 29px 33px;
@@ -102,7 +102,7 @@
 .empty-rule::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #a4bf88; position: absolute; top: 10px; left: 10px; }
 .module-hero { border-radius: 23px; padding: 25px; color: white; min-height: 193px; margin-bottom: 13px; background-size: cover; background-position: center; box-shadow: 0 13px 27px #163d2830; }
 .module-hero-beef { background-image: linear-gradient(90deg,#063e31f5,#094331bb 65%,#123c2d57),url('https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=1200&q=80'); }
-.module-hero-milk { background-position: 65% 48%; background-image: linear-gradient(90deg,#173c30f3,#29513cb3 65%,#1f422d64),url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1400&q=85'); }
+.module-hero-milk { background-position: 65% 48%; background-image: linear-gradient(90deg,#173c30f3,#29513cb3 65%,#1f422d64),url('/rural-cattle.jpg'); }
 .module-hero > span { font-size: 10px; font-weight: 800; letter-spacing: .15em; color: #d7e9bd; }
 .module-hero h2 { font-size: clamp(24px, 4vw, 35px); letter-spacing: -.05em; max-width: 480px; line-height: 1.07; margin: 14px 0 5px; }
 .module-hero p { color: #e0ece0; font-size: 12px; margin-bottom: 17px; }
