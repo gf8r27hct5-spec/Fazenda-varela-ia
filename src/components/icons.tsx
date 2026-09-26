@@ -16,5 +16,6 @@ const paths: Record<string, React.ReactNode> = {
   camera:<><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="3"/></>,
   back:<path d="m14 5-7 7 7 7"/>,
   logout:<><path d="M10 4H4v16h6m6-4 4-4-4-4m4 4H9"/></>,
+  dots:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
 };
 export function Icon({name,size=20,...props}:SVGProps<SVGSVGElement>&{name:string;size?:number}) {return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>{paths[name]||paths.spark}</svg>}

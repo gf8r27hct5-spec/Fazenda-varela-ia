@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { supabasePublishableKey, supabaseUrl } from '@/lib/supabase/config';
+import { animalRelations, lotRelations, relatedTotal } from '@/lib/related-records';
 
 const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` :
@@ -173,3 +174,133 @@ export async function createWeighing(form:FormData){const {db,id}=await context(
 export async function createMilk(form:FormData){const {db,id}=await context();const liters=amount(form,'litros'),day=field(form,'data_producao'),price=field(form,'preco_litro');if(!(liters>0)||!/^\d{4}-\d{2}-\d{2}$/.test(day)||price&&amount(form,'preco_litro')<0)fail('leite');const turno=field(form,'turno');if(turno&&!['manha','tarde','noite','total_dia'].includes(turno))fail('leite');const animalId=field(form,'animal_id');if(animalId){const {data:animal}=await db.from('animais').select('id,sistema').eq('id',animalId).eq('fazenda_id',id).maybeSingle();if(!animal||animal.sistema!=='leite')fail('leite');}const {error}=await db.from('producao_leite').insert({fazenda_id:id,animal_id:animalId||null,litros:liters,data_producao:day,turno:turno||null,preco_litro:price?amount(form,'preco_litro'):null});if(error)fail('leite');done('leite')}
 export async function createStock(form:FormData){const {db,id}=await context();const nome=field(form,'nome'),unit=field(form,'unidade');if(!nome||!unit||amount(form,'quantidade_atual')<0)fail('estoque');const {error}=await db.from('estoque').insert({fazenda_id:id,nome,categoria:field(form,'categoria'),unidade:unit,quantidade_atual:amount(form,'quantidade_atual'),estoque_minimo:amount(form,'estoque_minimo'),consumo_medio_dia:amount(form,'consumo_medio_dia')});if(error)fail('estoque');done('estoque')}
 export async function createTransaction(form:FormData){const {db,id}=await context();const tipo=field(form,'tipo'),valor=amount(form,'valor'),descricao=field(form,'descricao'),categoria=field(form,'categoria'),day=field(form,'data_competencia'),lot=field(form,'lote_id'),center=field(form,'centro_custo_id');if(!['receita','despesa'].includes(tipo)||!(valor>0)||!descricao||!categoria||!/^\d{4}-\d{2}-\d{2}$/.test(day))fail('registrar');if(lot){const {data}=await db.from('lotes').select('id').eq('id',lot).eq('fazenda_id',id).maybeSingle();if(!data)fail('registrar')}if(center){const {data}=await db.from('centros_custo').select('id').eq('id',center).eq('fazenda_id',id).maybeSingle();if(!data)fail('registrar')}const {error}=await db.from('transacoes').insert({fazenda_id:id,tipo,valor,descricao,categoria,data_competencia:day,status:field(form,'status')==='pendente'?'pendente':'pago',lote_id:lot||null,centro_custo_id:center||null,origem:'manual'});if(error)fail('registrar');revalidatePath('/painel/financeiro');done('registrar')}
+
+const uuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+const dayOrNull = (value: string) => value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+
+export async function updateCutAnimal(form: FormData) {
+  const { db, id: farmId } = await context();
+  const id = field(form, 'id'), identification = field(form, 'identificacao'), sex = field(form, 'sexo');
+  if (!uuid(id) || !identification || identification.length > 80 || !['', 'macho', 'femea'].includes(sex)) redirect('/painel/rebanho?erro=1');
+  const { data: animal } = await db.from('animais').select('id').eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
+  if (!animal) redirect('/painel/rebanho?erro=1');
+  const lotId = field(form, 'lote_id');
+  if (lotId) {
+    const { data: lot } = await db.from('lotes').select('id').eq('id', lotId).eq('fazenda_id', farmId).eq('sistema', 'corte').eq('ativo', true).maybeSingle();
+    if (!lot) redirect(`/animais/${id}?acao=editar&erro=1`);
+  }
+  const weight = field(form, 'peso_entrada'), current = field(form, 'peso_atual'), price = field(form, 'valor_compra');
+  if ([weight, current, price].some(value => value && (!Number.isFinite(Number(value)) || Number(value) < 0))) redirect(`/animais/${id}?acao=editar&erro=1`);
+  const { error } = await db.from('animais').update({
+    identificacao: identification, nome: field(form, 'nome') || null,
+    sexo: sex || null, categoria: field(form, 'categoria') || null, raca: field(form, 'raca') || null,
+    data_nascimento: dayOrNull(field(form, 'data_nascimento')), data_entrada: dayOrNull(field(form, 'data_entrada')),
+    peso_entrada: weight ? Number(weight) : null, peso_atual: current ? Number(current) : null,
+    valor_compra: price ? Number(price) : null, origem: field(form, 'origem') || null,
+    observacoes: field(form, 'observacoes') || null, lote_id: lotId || null,
+  }).eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte');
+  if (error) redirect(`/animais/${id}?acao=editar&erro=1`);
+  revalidatePath('/painel/rebanho'); revalidatePath('/painel'); revalidatePath(`/animais/${id}`);
+  redirect(`/animais/${id}?salvo=1`);
+}
+
+export async function moveCutAnimal(form: FormData) {
+  const { db, id: farmId } = await context();
+  const id = field(form, 'id'), lotId = field(form, 'lote_id');
+  if (!uuid(id) || lotId && !uuid(lotId)) redirect('/painel/rebanho?erro=1');
+  const { data: animal } = await db.from('animais').select('id,lote_id').eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
+  if (!animal) redirect('/painel/rebanho?erro=1');
+  if (lotId) {
+    const { data: lot } = await db.from('lotes').select('id').eq('id', lotId).eq('fazenda_id', farmId).eq('sistema', 'corte').eq('ativo', true).maybeSingle();
+    if (!lot) redirect(`/animais/${id}?acao=mover&erro=1`);
+  }
+  const { error } = await db.from('animais').update({ lote_id: lotId || null }).eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte');
+  if (error) redirect(`/animais/${id}?acao=mover&erro=1`);
+  if (animal.lote_id) revalidatePath(`/lotes/${animal.lote_id}`);
+  if (lotId) revalidatePath(`/lotes/${lotId}`);
+  revalidatePath('/painel/rebanho'); redirect(`/animais/${id}?salvo=1`);
+}
+
+export async function changeCutAnimalStatus(form: FormData) {
+  const { db, id: farmId } = await context();
+  const id = field(form, 'id'), status = field(form, 'status');
+  if (!uuid(id) || !['ativo', 'inativo', 'vendido', 'abatido', 'morto'].includes(status)) redirect('/painel/rebanho?erro=1');
+  const { data: animal, error: lookup } = await db.from('animais').select('lote_id').eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
+  if (lookup || !animal) redirect('/painel/rebanho?erro=1');
+  const { error } = await db.from('animais').update({ status }).eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte');
+  if (error) redirect(`/animais/${id}?acao=status&erro=1`);
+  revalidatePath('/painel'); revalidatePath('/painel/rebanho');
+  if (animal.lote_id) revalidatePath(`/lotes/${animal.lote_id}`);
+  redirect(`/animais/${id}?salvo=1`);
+}
+
+export async function deleteCutAnimal(form: FormData) {
+  const { db, id: farmId } = await context();
+  const id = field(form, 'id');
+  if (!uuid(id) || field(form, 'confirmacao') !== 'EXCLUIR') redirect('/painel/rebanho?erro=1');
+  const { data: animal } = await db.from('animais').select('id,lote_id,foto_url').eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
+  if (!animal) redirect('/painel/rebanho?erro=1');
+  const related = relatedTotal(await animalRelations(db, id, farmId));
+  const expected = Number(field(form, 'registros_esperados'));
+  const confirmed = field(form, 'confirmar_relacionados') === 'sim';
+  if (!Number.isSafeInteger(expected) || expected !== related || related > 0 && !confirmed) redirect(`/animais/${id}?acao=excluir&erro=1`);
+  const { error } = await db.rpc('excluir_animal_confirmado', { p_animal_id: id, p_registros_esperados: expected, p_confirmar_relacionados: confirmed });
+  if (error) redirect(`/animais/${id}?acao=excluir&erro=1`);
+  if (animal.foto_url) await db.storage.from('fotos-animais').remove([animal.foto_url]);
+  revalidatePath('/painel'); revalidatePath('/painel/rebanho');
+  if (animal.lote_id) revalidatePath(`/lotes/${animal.lote_id}`);
+  redirect('/painel/rebanho?salvo=1');
+}
+
+export async function updateCutLot(form: FormData) {
+  const { db, id: farmId } = await context();
+  const id = field(form, 'id'), name = field(form, 'nome'), goal = field(form, 'peso_meta');
+  if (!uuid(id) || !name || name.length > 120 || goal && !(Number(goal) > 0)) redirect('/painel/rebanho?erro=1');
+  const { error } = await db.from('lotes').update({ nome: name, categoria: field(form, 'categoria') || null, raca: field(form, 'raca') || null, peso_meta: goal ? Number(goal) : null }).eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte');
+  if (error) redirect(`/lotes/${id}?acao=editar&erro=1`);
+  revalidatePath('/painel/rebanho'); redirect(`/lotes/${id}?salvo=1`);
+}
+
+export async function moveCutLotAnimals(form: FormData) {
+  const { db, id: farmId } = await context();
+  const source = field(form, 'id'), target = field(form, 'lote_id');
+  const ids = [...new Set(form.getAll('animal_id').map(String))];
+  if (!uuid(source) || target && !uuid(target) || !ids.length || ids.some(value => !uuid(value)) || target === source) redirect('/painel/rebanho?erro=1');
+  const { data: sourceLot } = await db.from('lotes').select('id').eq('id', source).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
+  if (!sourceLot) redirect('/painel/rebanho?erro=1');
+  if (target) {
+    const { data: targetLot } = await db.from('lotes').select('id').eq('id', target).eq('fazenda_id', farmId).eq('sistema', 'corte').eq('ativo', true).maybeSingle();
+    if (!targetLot) redirect(`/lotes/${source}?acao=mover&erro=1`);
+  }
+  const { data: selected, error: lookup } = await db.from('animais').select('id').eq('fazenda_id', farmId).eq('lote_id', source).eq('sistema', 'corte').in('id', ids);
+  if (lookup || selected?.length !== ids.length) redirect(`/lotes/${source}?acao=mover&erro=1`);
+  const { error } = await db.from('animais').update({ lote_id: target || null }).eq('fazenda_id', farmId).eq('lote_id', source).in('id', ids);
+  if (error) redirect(`/lotes/${source}?acao=mover&erro=1`);
+  revalidatePath('/painel/rebanho'); revalidatePath(`/lotes/${source}`);
+  if (target) revalidatePath(`/lotes/${target}`);
+  redirect(`/lotes/${source}?salvo=1`);
+}
+
+export async function archiveCutLot(form: FormData) {
+  const { db, id: farmId } = await context();
+  const id = field(form, 'id');
+  if (!uuid(id)) redirect('/painel/rebanho?erro=1');
+  const { error } = await db.from('lotes').update({ ativo: false }).eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte');
+  if (error) redirect(`/lotes/${id}?acao=arquivar&erro=1`);
+  revalidatePath('/painel/rebanho'); redirect(`/lotes/${id}?salvo=1`);
+}
+
+export async function deleteCutLot(form: FormData) {
+  const { db, id: farmId } = await context();
+  const id = field(form, 'id');
+  if (!uuid(id) || field(form, 'confirmacao') !== 'EXCLUIR') redirect('/painel/rebanho?erro=1');
+  const { data: lot } = await db.from('lotes').select('id').eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
+  if (!lot) redirect('/painel/rebanho?erro=1');
+  const relations = await lotRelations(db, id, farmId);
+  const related = relatedTotal(relations, ['animais']), expected = Number(field(form, 'registros_esperados'));
+  const confirmed = field(form, 'confirmar_relacionados') === 'sim';
+  if (relations.animais || !Number.isSafeInteger(expected) || expected !== related || related > 0 && !confirmed) redirect(`/lotes/${id}?acao=excluir&erro=1`);
+  const { error } = await db.rpc('excluir_lote_confirmado', { p_lote_id: id, p_registros_esperados: expected, p_confirmar_relacionados: confirmed });
+  if (error) redirect(`/lotes/${id}?acao=excluir&erro=1`);
+  revalidatePath('/painel'); done('rebanho');
+}

@@ -3,11 +3,14 @@ import { notFound } from 'next/navigation';
 import { AppShell, Card, Empty, Heading, Stat } from '@/components/app-shell';
 import { TrendChart } from '@/components/charts';
 import { farmContext, date, money, number, sum } from '@/lib/farm';
+import { LotActions } from '@/components/management-actions';
+import { lotRelations } from '@/lib/related-records';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Lot({ params }: { params: Promise<{ id: string }> }) {
+export default async function Lot({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ acao?: string; erro?: string; salvo?: string }> }) {
   const { id } = await params;
+  const search = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const { db, farm } = await farmContext();
   const [lotResult, animalResult, weightResult, costResult] = await Promise.all([
@@ -19,6 +22,13 @@ export default async function Lot({ params }: { params: Promise<{ id: string }> 
   if ([lotResult, animalResult, weightResult, costResult].some(result => result.error)) throw new Error('Falha ao carregar lote');
   const lot = lotResult.data;
   if (!lot) notFound();
+  const [availableLots, relations] = await Promise.all([
+    db.from('lotes').select('id,nome').eq('fazenda_id', farm.id).eq('sistema', 'corte').eq('ativo', true).then(result => {
+      if (result.error) throw new Error('Falha ao carregar lotes.');
+      return result.data || [];
+    }),
+    search.acao === 'excluir' ? lotRelations(db, id, farm.id) : Promise.resolve(null),
+  ]);
 
   const animals = (animalResult.data || []).filter(animal => animal.status === 'ativo');
   const weights = weightResult.data || [];
@@ -55,6 +65,8 @@ export default async function Lot({ params }: { params: Promise<{ id: string }> 
     <Link href="/painel/rebanho" className="back-link">← Rebanho</Link>
     <Heading eyebrow="Detalhe do lote" title={lot.nome} />
     <p className="section-note">{lot.categoria || 'Categoria não informada'} · {animals.length} animais vinculados</p>
+    {search.salvo && <p role="status" className="app-notice good">Alteração salva.</p>}
+    <LotActions lot={lot} lots={availableLots} animals={animalResult.data || []} relations={relations} action={search.acao} error={search.erro} />
     <div className="stat-grid">
       <Stat label="Animais ativos" value={animals.length} />
       <Stat label="Peso médio registrado" value={average == null ? '—' : `${number(average, 1)} kg`} detail="Pesagens individuais ou do lote" />

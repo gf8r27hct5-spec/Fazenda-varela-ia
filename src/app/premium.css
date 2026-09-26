@@ -167,3 +167,24 @@
   .module-quick-actions { flex-direction: column; }
   .herd-feature { padding: 12px; }
 }
+.actions-menu { position: relative; z-index: 5; display: inline-block; margin: 0 0 20px; }
+.actions-menu summary { list-style: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 9px 14px; border: 1px solid #dce5d8; border-radius: 12px; background: #fff; color: #165b40; font-size: 13px; font-weight: 800; cursor: pointer; }
+.actions-menu summary::-webkit-details-marker { display: none; }
+.actions-links { position: absolute; top: 49px; left: 0; width: min(270px, calc(100vw - 32px)); padding: 8px; border: 1px solid #dfe8db; border-radius: 16px; background: white; box-shadow: 0 16px 35px #142b2240; }
+.actions-links a { display: block; padding: 13px; border-radius: 9px; font-size: 13px; font-weight: 650; }
+.actions-links a:hover, .actions-links a:focus-visible { background: #f1f6ed; }
+.actions-links .danger-link { color: #a43f35; border-top: 1px solid #edf0eb; }
+.management-panel { margin-bottom: 20px; max-width: 780px; }
+.management-panel h2 { margin: 0 0 13px; }
+.management-panel .entry-form { display: grid; gap: 13px; }
+.management-panel .entry-form label { display: grid; gap: 7px; font-size: 13px; font-weight: 700; }
+.management-panel .entry-form input, .management-panel .entry-form select, .management-panel .entry-form textarea { width: 100%; border: 1px solid #d9e4d7; border-radius: 10px; min-height: 46px; padding: 10px; color: #173d2d; background: #fbfcf9; font: inherit; }
+.management-panel .checkbox-row, .management-panel .entry-form .checkbox-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-weight: 600; }
+.management-panel .checkbox-row input { width: 19px; height: 19px; min-height: 19px; accent-color: #125b42; flex: none; }
+.management-panel .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; }
+.management-panel .entry-form button { justify-content: center; }
+.management-panel .danger-button { background: #9d3c35; }
+.linked-warning { background: #fff3ec; border: 1px solid #f0d5c8; border-radius: 12px; padding: 15px; margin: 16px 0; font-size: 13px; }
+.linked-warning ul { margin: 10px 0; padding-left: 20px; }
+.animal-checklist { max-height: 260px; overflow: auto; border: 1px solid #e2e9df; border-radius: 12px; padding: 7px 12px; }
+@media (max-width: 490px) { .management-panel .form-grid { grid-template-columns: 1fr; } }
