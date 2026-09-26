@@ -22,7 +22,7 @@ export async function createAccount(formData: FormData) {
   if (password.length < 12) redirect('/?modo=cadastro&erro=senha-curta');
   if (password !== confirmation) redirect('/?modo=cadastro&erro=senhas-diferentes');
   const { error } = await emailClient().auth.signUp({ email, password, options: { emailRedirectTo: `${siteUrl()}/auth/callback` } });
-  if (error) redirect(`/?modo=cadastro&erro=${error.status === 429 ? 'limite-email' : 'cadastro'}`);
+  if (error) redirect(`/?modo=cadastro&origem=email&erro=${error.status === 429 ? 'limite-email' : 'cadastro'}`);
   redirect('/?modo=entrar&enviado=cadastro');
 }
 
@@ -30,7 +30,7 @@ export async function requestPasswordReset(formData: FormData) {
   const email = String(formData.get('email') || '').trim().toLowerCase();
   if (!email.includes('@')) redirect('/?modo=recuperar&erro=email');
   const { error } = await emailClient().auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl()}/auth/callback` });
-  if (error) redirect(`/?modo=recuperar&erro=${error.status === 429 ? 'limite-email' : 'recuperacao'}`);
+  if (error) redirect(`/?modo=recuperar&origem=email&erro=${error.status === 429 ? 'limite-email' : 'recuperacao'}`);
   redirect('/?modo=recuperar&enviado=recuperacao');
 }
 
@@ -48,24 +48,28 @@ export async function saveRecoveredPassword(formData: FormData) {
 
 export async function signIn(formData: FormData) {
   const email = String(formData.get('email') || '').trim();
-  if (!email) redirect('/?erro=email');
+  if (!email) redirect('/?modo=entrar&origem=email&erro=email');
   // Email links may open in a different browser from the one that requested
   // them. The implicit flow does not require a PKCE verifier cookie there.
   const { error } = await emailClient().auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: `${siteUrl()}/auth/callback` } });
   if (error) {
     const limited = error.status === 429 || error.code === 'over_email_send_rate_limit';
-    redirect(limited ? '/?erro=limite-email' : '/?erro=login');
+    redirect(limited ? '/?modo=entrar&origem=email&erro=limite-email' : '/?modo=entrar&origem=email&erro=login');
   }
-  redirect('/?enviado=1');
+  redirect('/?modo=entrar&origem=email&enviado=1');
 }
 
 export async function signInWithPassword(formData: FormData) {
-  const email = String(formData.get('email') || '').trim();
+  const email = String(formData.get('email') || '').trim().toLowerCase();
   const password = String(formData.get('password') || '');
-  if (!email || !password) redirect('/?erro=senha');
+  if (!email || !password) redirect('/?modo=entrar&erro=credenciais');
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) redirect('/?erro=credenciais');
+  if (error) {
+    if (error.code === 'email_not_confirmed') redirect('/?modo=entrar&erro=email-nao-confirmado');
+    if (error.status === 429) redirect('/?modo=entrar&erro=tentativas-login');
+    redirect('/?modo=entrar&erro=credenciais');
+  }
   redirect('/painel');
 }
 
