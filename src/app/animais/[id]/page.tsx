@@ -1,66 +1,41 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
-import { TrendChart } from '@/components/charts';
-import { AppShell, Card, Empty, Heading, Stat } from '@/components/app-shell';
-import { AnimalActions } from '@/components/management-actions';
-import { animalRelations } from '@/lib/related-records';
-import { date, farmContext, money, number } from '@/lib/farm';
-
-export const dynamic = 'force-dynamic';
-
-export default async function Animal({ params, searchParams }: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ acao?: string; status?: string; erro?: string; salvo?: string }>;
-}) {
-  const { id } = await params, search = await searchParams;
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const { db, farm } = await farmContext();
-  const [a, w, m, t] = await Promise.all([
-    db.from('animais').select('*').eq('id', id).eq('fazenda_id', farm.id).maybeSingle(),
-    db.from('pesagens').select('*').eq('animal_id', id).eq('fazenda_id', farm.id).order('data_pesagem', { ascending: false }),
-    db.from('producao_leite').select('*').eq('animal_id', id).eq('fazenda_id', farm.id).order('data_producao', { ascending: false }),
-    db.from('transacoes').select('*').eq('animal_id', id).eq('fazenda_id', farm.id),
-  ]);
-  if (a.error || w.error || m.error || t.error) throw new Error('Falha ao carregar a ficha do animal.');
-  if (!a.data) notFound();
-  const animal = a.data, dairy = animal.sistema === 'leite';
-  const weights = w.data || [], latest = weights[0], previous = weights[1];
-  const days = latest && previous ? (new Date(latest.data_pesagem).getTime() - new Date(previous.data_pesagem).getTime()) / 86400000 : 0;
-  const gmd = latest && previous && days > 0 ? (Number(latest.peso_kg) - Number(previous.peso_kg)) / days : null;
-  const [lots, relations] = dairy ? [[], null] : await Promise.all([
-    db.from('lotes').select('id,nome').eq('fazenda_id', farm.id).eq('sistema', 'corte').eq('ativo', true).then(result => {
-      if (result.error) throw new Error('Falha ao carregar lotes.');
-      return result.data || [];
-    }),
-    search.acao === 'excluir' ? animalRelations(db, id, farm.id) : Promise.resolve(null),
-  ]);
-  const image = animal.foto_url ? await db.storage.from('fotos-animais').createSignedUrl(animal.foto_url, 3600) : null;
-
-  return <AppShell farm={farm} active={dairy ? 'Leite' : 'Rebanho'}>
-    <Link href={dairy ? '/painel/leite' : '/painel/rebanho'} className="back-link">← Voltar</Link>
-    <Heading eyebrow="Ficha individual" title={String(animal.nome || animal.identificacao)} />
-    <p className="section-note">{animal.identificacao} · {animal.categoria || 'Categoria não informada'} · {animal.status}</p>
-    {search.salvo && <p role="status" className="app-notice good">Alteração salva.</p>}
-    {!dairy && <AnimalActions animal={animal} lots={lots} relations={relations} action={search.acao} status={search.status} error={search.erro} />}
-    {image?.data?.signedUrl && <div className="animal-portrait"><Image src={image.data.signedUrl} alt={`Foto de ${animal.nome || animal.identificacao}`} fill unoptimized sizes="(max-width: 600px) 100vw, 750px" /></div>}
-    <div className="stat-grid">
-      <Stat label="Peso atual" value={animal.peso_atual || latest ? `${number(Number(animal.peso_atual || latest?.peso_kg), 1)} kg` : '—'} />
-      <Stat label="Peso de entrada" value={animal.peso_entrada ? `${number(Number(animal.peso_entrada), 1)} kg` : '—'} />
-      <Stat label="GMD" value={gmd != null ? `${number(gmd, 2)} kg/dia` : '—'} />
-      <Stat label="Valor de compra" value={money(animal.valor_compra)} />
-    </div>
-    <Card title="Identificação e manejo"><div className="detail-grid">
-      <span>Brinco<strong>{animal.identificacao}</strong></span><span>Raça<strong>{animal.raca || 'Não informada'}</strong></span>
-      <span>Sexo<strong>{animal.sexo === 'femea' ? 'Fêmea' : animal.sexo === 'macho' ? 'Macho' : 'Não informado'}</strong></span>
-      <span>Data de entrada<strong>{animal.data_entrada ? date(animal.data_entrada) : 'Não informada'}</strong></span>
-      <span>Lote<strong>{animal.lote_id ? lots.find(lot => lot.id === animal.lote_id)?.nome || 'Lote cadastrado' : 'Sem lote'}</strong></span>
-      <span>Origem<strong>{animal.origem || 'Não informada'}</strong></span><span>Situação<strong>{animal.status}</strong></span>
-    </div>{animal.observacoes && <p className="section-note">{animal.observacoes}</p>}</Card>
-    {dairy ? <Card title="Produção individual"><TrendChart points={[...(m.data || [])].reverse().map(item => ({ label: date(item.data_producao).slice(0, 5), value: Number(item.litros) }))} unit="L" />
-      {m.data?.length ? m.data.map(item => <div className="data-row" key={item.id}><strong>{number(Number(item.litros), 1)} litros</strong><span>{date(item.data_producao)} · {item.turno || '—'}</span></div>) : <Empty title="Sem produção individual" description="Registre uma produção vinculada a esta vaca." />}</Card>
-      : <Card title="Histórico de pesagens"><TrendChart points={[...weights].reverse().map(item => ({ label: date(item.data_pesagem).slice(0, 5), value: Number(item.peso_kg) }))} unit="kg" />
-        {weights.length ? weights.map(item => <div className="data-row" key={item.id}><strong>{number(Number(item.peso_kg), 1)} kg</strong><span>{date(item.data_pesagem)}</span></div>) : <Empty title="Sem pesagens" description="Registre o primeiro peso deste animal." />}</Card>}
-    <Card title="Custos associados">{t.data?.length ? t.data.map(item => <div className="data-row" key={item.id}><strong>{item.descricao}</strong><span>{money(Number(item.valor))}</span></div>) : <Empty title="Sem custos vinculados" description="Lançamentos associados ao animal aparecerão aqui." />}</Card>
-  </AppShell>;
+import {notFound} from 'next/navigation';
+import {AppShell,Card,Empty,Heading,Stat} from '@/components/app-shell';
+import {TrendChart} from '@/components/charts';
+import {AnimalActions} from '@/components/management-actions';
+import {ExitForm} from '@/components/corte-forms';
+import {animalRelations} from '@/lib/related-records';
+import {date,farmContext,money,number} from '@/lib/farm';
+import {exitEconomics,weightStats} from '@/lib/corte';
+export const dynamic='force-dynamic';
+export default async function Animal({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{acao?:string;status?:string;aba?:string;tipo?:string;erro?:string;salvo?:string}>}){
+ const {id}=await params,q=await searchParams;if(!/^[0-9a-f-]{36}$/i.test(id))notFound();const {db,farm}=await farmContext();
+ const [a,w,m,t,h,s]=await Promise.all([
+  db.from('animais').select('*').eq('id',id).eq('fazenda_id',farm.id).maybeSingle(),
+  db.from('pesagens').select('*').eq('animal_id',id).eq('fazenda_id',farm.id).order('data_pesagem'),
+  db.from('producao_leite').select('*').eq('animal_id',id).eq('fazenda_id',farm.id).order('data_producao'),
+  db.from('transacoes').select('*').eq('animal_id',id).eq('fazenda_id',farm.id),
+  db.from('manejos').select('*').eq('animal_id',id).eq('fazenda_id',farm.id).order('data_manejo',{ascending:false}),
+  db.from('saidas_corte').select('*').eq('animal_id',id).eq('fazenda_id',farm.id).maybeSingle()
+ ]);if([a,w,m,t,h,s].some(r=>r.error))throw new Error('Falha ao carregar animal');if(!a.data)notFound();
+ const animal=a.data,dairy=animal.sistema==='leite',weights=w.data||[],health=h.data||[],costs=t.data||[],exit=s.data;
+ const [lots,relations]=dairy?[[],null] as const:await Promise.all([db.from('lotes').select('id,nome,peso_meta').eq('fazenda_id',farm.id).eq('sistema','corte').then(r=>{if(r.error)throw new Error('Lotes indisponíveis');return r.data||[]}),q.acao==='excluir'?animalRelations(db,id,farm.id):Promise.resolve(null)]);
+ const goal=lots.find(l=>l.id===animal.lote_id)?.peso_meta,stats=weightStats(animal,weights,goal),economics=exit?exitEconomics(animal,exit,costs):null;
+ const image=animal.foto_url?await db.storage.from('fotos-animais').createSignedUrl(animal.foto_url,3600):null;
+ const section=['pesagens','sanidade','saida'].includes(q.aba||'')?q.aba:'pesagens';
+ return <AppShell farm={farm} active={dairy?'Leite':'Rebanho'}><Link href={dairy?'/painel/leite':'/painel/rebanho'} className="back-link">← {dairy?'Leite':'Corte'}</Link><Heading eyebrow="Ficha individual" title={String(animal.nome||animal.identificacao)}/><p className="section-note">{animal.identificacao} · {animal.categoria||'Categoria não informada'} · {animal.status}</p>
+ {q.salvo&&<p role="status" className="app-notice good">Registro salvo.</p>}{q.erro&&<p role="alert" className="app-notice bad">Não foi possível concluir. Confira os dados.</p>}
+ {!dairy&&<AnimalActions animal={animal} lots={[...lots]} relations={relations} action={q.acao} status={q.status} error={q.erro}/>}
+ {image?.data?.signedUrl&&<div className="animal-portrait"><Image src={image.data.signedUrl} alt={`Foto de ${animal.identificacao}`} fill unoptimized sizes="(max-width: 600px) 100vw, 750px"/></div>}
+ <div className="stat-grid"><Stat label="Peso atual" value={stats.current!=null?`${number(stats.current,1)} kg`:'—'}/><Stat label="Peso de entrada" value={animal.peso_entrada!=null?`${number(Number(animal.peso_entrada),1)} kg`:'—'}/><Stat label="GMD recente" value={stats.recentGmd!=null?`${number(stats.recentGmd,2)} kg/dia`:'—'}/><Stat label="Valor de compra" value={money(animal.valor_compra)}/></div>
+ <Card title="Identificação"><div className="detail-grid"><span>Brinco<strong>{animal.identificacao}</strong></span><span>Raça<strong>{animal.raca||'—'}</strong></span><span>Sexo<strong>{animal.sexo==='femea'?'Fêmea':animal.sexo==='macho'?'Macho':'—'}</strong></span><span>Entrada<strong>{animal.data_entrada?date(animal.data_entrada):'—'}</strong></span><span>Lote<strong>{lots.find(l=>l.id===animal.lote_id)?.nome||'—'}</strong></span><span>Origem<strong>{animal.origem||'—'}</strong></span></div>{animal.observacoes&&<p className="section-note">{animal.observacoes}</p>}</Card>
+ {dairy?<Card title="Produção individual"><TrendChart points={(m.data||[]).map(x=>({label:date(x.data_producao).slice(0,5),value:Number(x.litros)}))} unit="L"/>{m.data?.length?m.data.map(x=><div className="data-row" key={x.id}><strong>{number(Number(x.litros),1)} litros</strong><span>{date(x.data_producao)} · {x.turno||'—'}</span></div>):<Empty title="Sem produção individual" description="Vincule uma produção a esta vaca."/>}</Card>:<>
+ <nav className="detail-tabs" aria-label="Seções do animal">{[['pesagens','Pesagens'],['sanidade','Sanidade'],['saida','Saída / Fechamento']].map(([key,label])=><Link key={key} aria-current={section===key?'page':undefined} href={`?aba=${key}#detalhe`}>{label}</Link>)}</nav><section id="detalhe">
+ {section==='pesagens'&&<><div className="stat-grid"><Stat label="Maior peso" value={stats.maximum!=null?`${number(stats.maximum,1)} kg`:'—'}/><Stat label="Ganho total" value={stats.gain!=null?`${number(stats.gain,1)} kg`:'—'}/><Stat label="Dias no sistema" value={stats.days??'—'}/><Stat label="Até a meta" value={stats.remaining!=null?`${number(stats.remaining,1)} kg`:'—'}/><Stat label="Meta atingida" value={stats.progress!=null?`${number(stats.progress,1)}%`:'—'}/><Stat label="Projeção de dias" value={stats.projectedDays??'—'}/></div><Card title="Histórico de pesagens"><TrendChart points={stats.entries.map(x=>({label:date(x.data_pesagem).slice(0,5),value:Number(x.peso_kg)}))} unit="kg"/>{[...stats.entries].reverse().map((x,i)=><div className="data-row" key={`${x.data_pesagem}-${i}`}><div><strong>{number(Number(x.peso_kg),1)} kg · {date(x.data_pesagem)}</strong><small>Ganho: {x.gain!=null?`${number(x.gain,1)} kg`:'—'} · GMD: {x.gmd!=null?`${number(x.gmd,2)} kg/dia`:'—'}{x.responsavel?` · ${x.responsavel}`:''}{x.observacoes?` · ${x.observacoes}`:''}</small></div></div>)}{!weights.length&&<Empty title="Sem pesagens" description="Registre o primeiro peso."/>}<Link className="module-action" href={`/painel/novo/pesagem?animal=${id}`}>+ Registrar pesagem</Link></Card></>}
+ {section==='sanidade'&&<Card title="Histórico de sanidade">{health.length?health.map(x=><div className="data-row" key={x.id}><div><strong>{x.produto||x.tipo} · {date(x.data_manejo)}</strong><small>{x.tipo}{x.dose?` · ${x.dose} ${x.dose_unidade||''}`:''}{x.via_aplicacao?` · ${x.via_aplicacao}`:''}{x.proxima_data?` · Reforço ${date(x.proxima_data)}`:''}{x.data_fim_carencia?` · Carência até ${date(x.data_fim_carencia)}`:''}</small><small>{[x.motivo,x.frequencia,x.responsavel,x.observacoes].filter(Boolean).join(' · ')}</small></div></div>):<Empty title="Nenhum manejo" description="Vacinas e tratamentos aparecerão aqui."/>}<Link className="module-action" href={`/painel/sanidade?animal=${id}`}>+ Registrar manejo</Link></Card>}
+ {section==='saida'&&<Card title={exit?'Fechamento do animal':'Registrar saída'}>{exit&&economics?<><p className="section-note">{exit.tipo} · {date(exit.data_saida)}{exit.comprador_destino?` · ${exit.comprador_destino}`:''}</p><div className="stat-grid">{[['Peso inicial',economics.initial!=null?`${number(economics.initial,1)} kg`:'—'],['Peso final',economics.final!=null?`${number(economics.final,1)} kg`:'—'],['Ganho total',economics.gain!=null?`${number(economics.gain,1)} kg`:'—'],['GMD do período',economics.gmd!=null?`${number(economics.gmd,2)} kg/dia`:'—'],['Dias no sistema',economics.days??'—'],['Custo de compra',money(economics.purchase)],['Custos vinculados',money(economics.linked)],['Custo total por cabeça',money(economics.total)],['Custo por kg ganho',money(economics.costPerKg)],['Custo por @ produzida',money(economics.costPerArroba)],['Receita',money(economics.revenue)],['Lucro / prejuízo',money(economics.profit)],['Margem',economics.margin!=null?`${number(economics.margin,1)}%`:'—'],['Retorno investido',economics.roi!=null?`${number(economics.roi,1)}%`:'—'],['Preço por kg',money(economics.priceKg)],['Preço por @',money(economics.priceArroba)]].map(([label,value])=><Stat key={String(label)} label={String(label)} value={value}/>)}</div><p className="section-note">Custos coletivos não são distribuídos automaticamente. Cálculos por arroba exigem rendimento de carcaça informado.</p></>:animal.status==='ativo'?<ExitForm animal={id} kind={q.tipo}/>:<p>Animal inativo. Reative antes de registrar saída.</p>}</Card>}
+ </section></>}
+ <Card title="Lançamentos associados">{costs.length?costs.map(x=><div className="data-row" key={x.id}><strong>{x.descricao}</strong><span>{x.tipo==='despesa'?'-':'+'}{money(Number(x.valor))}</span></div>):<Empty title="Sem lançamentos" description="Custos e receitas vinculados aparecerão aqui."/>}</Card>
+ </AppShell>;
 }

@@ -31,10 +31,11 @@ function ConfirmDelete({ entity, id, relations, related, error, action }: { enti
 
 export function AnimalActions({ animal, lots, relations, action, status, error }: { animal: Entry; lots: Option[]; relations: Relations | null; action?: string; status?: string; error?: string }) {
   const id = String(animal.id), base = `/animais/${id}`;
-  const statuses = [['inativo', 'Arquivar/Inativar'], ['vendido', 'Marcar como vendido'], ['abatido', 'Marcar como abatido'], ['morto', 'Marcar como morto'], ['ativo', 'Reativar']] as const;
+  const statuses = [['inativo', 'Arquivar/Inativar'], ['ativo', 'Reativar']] as const;
   return <><details className="actions-menu"><summary aria-label="Ações do animal"><Icon name="dots" size={22} /> Ações</summary><div className="actions-links">
     <Link href={`${base}?acao=editar#acoes`}>Editar</Link><Link href={`${base}?acao=mover#acoes`}>Mover de lote</Link>
     {statuses.filter(([value]) => value !== animal.status).map(([value, label]) => <Link key={value} href={`${base}?acao=status&status=${value}#acoes`}>{label}</Link>)}
+    {animal.status==='ativo'&&<><Link href={`${base}?aba=saida&tipo=venda#fechamento`}>Registrar venda</Link><Link href={`${base}?aba=saida&tipo=abate#fechamento`}>Registrar abate</Link><Link href={`${base}?aba=saida&tipo=morte#fechamento`}>Registrar morte</Link></>}
     <Link className="danger-link" href={`${base}?acao=excluir#acoes`}>Excluir cadastro</Link>
   </div></details>
   {action === 'editar' && <section className="app-card management-panel" id="acoes"><h2>Editar animal de corte</h2><Feedback error={error} />

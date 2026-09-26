@@ -124,8 +124,7 @@ export async function createAnimal(formData: FormData) {
   const modulo = String(formData.get('modulo') || 'corte');
   if (!['corte','leite'].includes(modulo)) redirect('/painel/rebanho?erro=1');
   const categoria = String(formData.get('categoria') || '').trim() || (modulo === 'leite' ? 'Vaca leiteira' : 'Corte');
-  const status = modulo === 'corte' ? String(formData.get('status') || 'ativo') : 'ativo';
-  if (!['ativo','vendido','abatido','morto'].includes(status)) redirect('/painel/rebanho?erro=1');
+  const status = 'ativo';
   if (loteId) { const { data: lot } = await supabase.from('lotes').select('id').eq('id', loteId).eq('fazenda_id', farm.id).eq('sistema','corte').maybeSingle(); if (!lot) redirect(`/painel/${modulo === 'leite' ? 'leite' : 'rebanho'}?erro=1`); }
   const bezerroId = modulo === 'leite' ? String(formData.get('bezerro_id') || '') : '';
   if (bezerroId) { const { data: calf } = await supabase.from('animais').select('id').eq('id', bezerroId).eq('fazenda_id',farm.id).eq('sistema','leite').maybeSingle(); if (!calf) redirect('/painel/leite?erro=1'); }
@@ -170,7 +169,57 @@ function fail(area:string){redirect(`/painel/${area}?erro=1`)}
 function done(area:string){revalidatePath('/painel');revalidatePath(`/painel/${area}`);redirect(`/painel/${area}?salvo=1`)}
 export async function createLot(form:FormData){const {db,id}=await context();const nome=field(form,'nome');const meta=field(form,'peso_meta');if(!nome||nome.length>120||meta&&!(amount(form,'peso_meta')>0))fail('rebanho');const {error}=await db.from('lotes').insert({fazenda_id:id,nome,sistema:'corte',categoria:field(form,'categoria')||null,peso_meta:meta?amount(form,'peso_meta'):null});if(error)fail('rebanho');done('rebanho')}
 export async function createCostCenter(form:FormData){const {db,id}=await context();const nome=field(form,'nome');if(!nome||nome.length>120)fail('financeiro');const {error}=await db.from('centros_custo').insert({fazenda_id:id,nome});if(error)fail('financeiro');done('financeiro')}
-export async function createWeighing(form:FormData){const {db,id}=await context();const target=field(form,'target'),weight=amount(form,'peso_kg'),when=field(form,'data_pesagem');if(!/^[al]:[0-9a-f-]{36}$/i.test(target)||!(weight>0)||!/^\d{4}-\d{2}-\d{2}$/.test(when))fail('pesagens');const table=target.startsWith('l:')?'lotes':'animais';const {data,error:lookup}=await db.from(table).select('id').eq('id',target.slice(2)).eq('fazenda_id',id).eq('sistema','corte').maybeSingle();if(lookup||!data)fail('pesagens');const targetId=target.slice(2);const count=field(form,'quantidade_animais');const {error}=await db.from('pesagens').insert({fazenda_id:id,lote_id:table==='lotes'?targetId:null,animal_id:table==='animais'?targetId:null,peso_kg:weight,data_pesagem:when,quantidade_animais:count?amount(form,'quantidade_animais'):null});if(error)fail('pesagens');revalidatePath(`/lotes/${targetId}`);done('pesagens')}
+export async function createWeighing(form:FormData){
+ const {db,id}=await context();const target=field(form,'target'),weight=amount(form,'peso_kg'),when=field(form,'data_pesagem');
+ if(!/^[al]:[0-9a-f-]{36}$/i.test(target)||!(weight>0)||!/^\d{4}-\d{2}-\d{2}$/.test(when))fail('pesagens');
+ const targetId=target.slice(2),individual=target.startsWith('a:');
+ const result=individual?await db.from('animais').select('id,lote_id,status').eq('id',targetId).eq('fazenda_id',id).eq('sistema','corte').maybeSingle():await db.from('lotes').select('id').eq('id',targetId).eq('fazenda_id',id).eq('sistema','corte').maybeSingle();
+ if(result.error||!result.data||individual&&'status' in result.data&&result.data.status!=='ativo')fail('pesagens');
+ const lotId=individual&&result.data&&'lote_id' in result.data?result.data.lote_id:targetId;
+ const count=field(form,'quantidade_animais');const {error}=await db.from('pesagens').insert({fazenda_id:id,lote_id:lotId||null,animal_id:individual?targetId:null,peso_kg:weight,data_pesagem:when,quantidade_animais:count?amount(form,'quantidade_animais'):null,responsavel:field(form,'responsavel')||null,observacoes:field(form,'observacoes')||null});
+ if(error)fail('pesagens');if(lotId)revalidatePath(`/lotes/${lotId}`);if(individual)revalidatePath(`/animais/${targetId}`);done('pesagens');
+}
+
+export async function createLotBatchWeighing(form:FormData){
+  const {db,id}=await context();const lot=field(form,'lote_id'),day=field(form,'data_pesagem');
+  const weights=[...form.entries()].filter(([key,value])=>key.startsWith('peso_')&&String(value).trim()).map(([key,value])=>({animal_id:key.slice(5),peso_kg:Number(String(value).replace(',','.'))}));
+  if(!uuid(lot)||!/^\d{4}-\d{2}-\d{2}$/.test(day)||!weights.length||weights.some(x=>!uuid(x.animal_id)||!(x.peso_kg>0)))redirect(`/lotes/${lot}?erro=pesagem`);
+  const {data:owned}=await db.from('lotes').select('id').eq('id',lot).eq('fazenda_id',id).eq('sistema','corte').maybeSingle();
+  if(!owned)fail('pesagens');
+  const {error}=await db.rpc('registrar_pesagens_lote_corte',{p_lote_id:lot,p_data:day,p_pesos:weights,p_responsavel:field(form,'responsavel')||null,p_observacoes:field(form,'observacoes')||null});
+  if(error)redirect(`/lotes/${lot}?erro=pesagem`);
+  revalidatePath(`/lotes/${lot}`);revalidatePath('/painel/pesagens');revalidatePath('/painel/rebanho');
+  for(const item of weights)revalidatePath(`/animais/${item.animal_id}`);
+  redirect(`/lotes/${lot}?salvo=pesagem`);
+}
+
+export async function createSanitaryRecord(form:FormData){
+  const {db,id}=await context();const lot=field(form,'lote_id'),animalIds=[...new Set(form.getAll('animal_id').map(String))];
+  if(!uuid(lot)||!animalIds.length||animalIds.some(x=>!uuid(x)))fail('sanidade');
+  const {data:owned}=await db.from('lotes').select('id').eq('id',lot).eq('fazenda_id',id).eq('sistema','corte').maybeSingle();if(!owned)fail('sanidade');
+  const keys=['tipo','produto','dose','dose_unidade','via_aplicacao','lote_produto','motivo','frequencia','duracao_dias','data_manejo','data_fim','carencia_dias','data_fim_carencia','proxima_data','responsavel','observacoes'];
+  const data=Object.fromEntries(keys.map(key=>[key,field(form,key)]));
+  if(!data.produto||!/^\d{4}-\d{2}-\d{2}$/.test(data.data_manejo)||!['vacina','medicamento','vermifugo','antiparasitario','vitamina','exame','diagnostico','procedimento','outro'].includes(data.tipo))fail('sanidade');
+  const {error}=await db.rpc('registrar_manejo_corte',{p_lote_id:lot,p_animais:animalIds,p_dados:data});
+  if(error)redirect('/painel/sanidade?erro=1');
+  revalidatePath('/painel/sanidade');revalidatePath(`/lotes/${lot}`);for(const animal of animalIds)revalidatePath(`/animais/${animal}`);
+  redirect('/painel/sanidade?salvo=1');
+}
+
+export async function createExitRecord(form:FormData){
+  const {db,id}=await context();const animal=field(form,'animal_id');
+  if(!uuid(animal)||field(form,'confirmacao')!=='ENCERRAR')fail('rebanho');
+  const {data:owned}=await db.from('animais').select('id,lote_id').eq('id',animal).eq('fazenda_id',id).eq('sistema','corte').eq('status','ativo').maybeSingle();
+  if(!owned)redirect(`/animais/${animal}?aba=saida&erro=saida`);
+  const keys=['tipo','data_saida','peso_final','rendimento_carcaca','valor_venda','frete','outras_despesas','comprador_destino','observacoes'];
+  const data=Object.fromEntries(keys.map(key=>[key,field(form,key)]));
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(data.data_saida)||['valor_venda','frete','outras_despesas'].some(k=>data[k]&&(!Number.isFinite(Number(data[k]))||Number(data[k])<0)))redirect(`/animais/${animal}?aba=saida&erro=saida`);
+  const {error}=await db.rpc('registrar_saida_corte',{p_animal_id:animal,p_dados:data});
+  if(error)redirect(`/animais/${animal}?aba=saida&erro=saida`);
+  revalidatePath('/painel');revalidatePath('/painel/rebanho');revalidatePath('/painel/financeiro');
+  if(owned.lote_id)revalidatePath(`/lotes/${owned.lote_id}`);
+  revalidatePath(`/animais/${animal}`);redirect(`/animais/${animal}?aba=saida&salvo=1`);
+}
 export async function createMilk(form:FormData){const {db,id}=await context();const liters=amount(form,'litros'),day=field(form,'data_producao'),price=field(form,'preco_litro');if(!(liters>0)||!/^\d{4}-\d{2}-\d{2}$/.test(day)||price&&amount(form,'preco_litro')<0)fail('leite');const turno=field(form,'turno');if(turno&&!['manha','tarde','noite','total_dia'].includes(turno))fail('leite');const animalId=field(form,'animal_id');if(animalId){const {data:animal}=await db.from('animais').select('id,sistema').eq('id',animalId).eq('fazenda_id',id).maybeSingle();if(!animal||animal.sistema!=='leite')fail('leite');}const {error}=await db.from('producao_leite').insert({fazenda_id:id,animal_id:animalId||null,litros:liters,data_producao:day,turno:turno||null,preco_litro:price?amount(form,'preco_litro'):null});if(error)fail('leite');done('leite')}
 export async function createStock(form:FormData){const {db,id}=await context();const nome=field(form,'nome'),unit=field(form,'unidade');if(!nome||!unit||amount(form,'quantidade_atual')<0)fail('estoque');const {error}=await db.from('estoque').insert({fazenda_id:id,nome,categoria:field(form,'categoria'),unidade:unit,quantidade_atual:amount(form,'quantidade_atual'),estoque_minimo:amount(form,'estoque_minimo'),consumo_medio_dia:amount(form,'consumo_medio_dia')});if(error)fail('estoque');done('estoque')}
 export async function createTransaction(form:FormData){const {db,id}=await context();const tipo=field(form,'tipo'),valor=amount(form,'valor'),descricao=field(form,'descricao'),categoria=field(form,'categoria'),day=field(form,'data_competencia'),lot=field(form,'lote_id'),center=field(form,'centro_custo_id');if(!['receita','despesa'].includes(tipo)||!(valor>0)||!descricao||!categoria||!/^\d{4}-\d{2}-\d{2}$/.test(day))fail('registrar');if(lot){const {data}=await db.from('lotes').select('id').eq('id',lot).eq('fazenda_id',id).maybeSingle();if(!data)fail('registrar')}if(center){const {data}=await db.from('centros_custo').select('id').eq('id',center).eq('fazenda_id',id).maybeSingle();if(!data)fail('registrar')}const {error}=await db.from('transacoes').insert({fazenda_id:id,tipo,valor,descricao,categoria,data_competencia:day,status:field(form,'status')==='pendente'?'pendente':'pago',lote_id:lot||null,centro_custo_id:center||null,origem:'manual'});if(error)fail('registrar');revalidatePath('/painel/financeiro');done('registrar')}
@@ -224,7 +273,7 @@ export async function moveCutAnimal(form: FormData) {
 export async function changeCutAnimalStatus(form: FormData) {
   const { db, id: farmId } = await context();
   const id = field(form, 'id'), status = field(form, 'status');
-  if (!uuid(id) || !['ativo', 'inativo', 'vendido', 'abatido', 'morto'].includes(status)) redirect('/painel/rebanho?erro=1');
+  if (!uuid(id) || !['ativo', 'inativo'].includes(status)) redirect('/painel/rebanho?erro=1');
   const { data: animal, error: lookup } = await db.from('animais').select('lote_id').eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
   if (lookup || !animal) redirect('/painel/rebanho?erro=1');
   const { error } = await db.from('animais').update({ status }).eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte');
