@@ -13,7 +13,7 @@ export default async function Weighings({searchParams}:{searchParams:Promise<{lo
  const rows=all.filter(x=>chosenAnimal?x.animal_id===chosenAnimal.id:chosenLot?x.lote_id===chosenLot.id:animals.some(a=>a.id===x.animal_id)||lots.some(l=>l.id===x.lote_id));
  const stats=chosenAnimal?weightStats(chosenAnimal,rows,lots.find(l=>l.id===chosenAnimal.lote_id)?.peso_meta):null;
  const group=chosenLot?lotWeights(animals.filter(a=>a.lote_id===chosenLot.id),rows):null;
- const chart=stats?stats.entries.map(x=>({label:date(x.data_pesagem).slice(0,5),value:Number(x.peso_kg)})):group?group.chart.filter(x=>x.average!=null).map(x=>({label:date(x.day).slice(0,5),value:x.average!})):[];
+ const chart=stats?stats.entries.map(x=>({label:date(x.data_pesagem).slice(0,5),value:Number(x.peso_kg)})):group?group.chart.filter(x=>x.average!=null&&x.count===animals.filter(a=>a.lote_id===chosenLot!.id&&a.status==='ativo').length).map(x=>({label:date(x.day).slice(0,5),value:x.average!})):[];
  return <AppShell farm={farm} active="Rebanho"><Link className="back-link" href="/painel/rebanho">← Corte</Link><Heading eyebrow="Rebanho · Corte" title="Pesagens"/><p className="section-note">Histórico real por animal e lote, com ganho e GMD calculados entre datas distintas.</p>
   {query.salvo&&<p role="status" className="app-notice good">Pesagem salva.</p>}{query.erro&&<p role="alert" className="app-notice bad">Não foi possível salvar a pesagem. Confira os dados.</p>}
   <nav className="filter-pills" aria-label="Filtrar pesagens"><Link href="/painel/pesagens" aria-current={!chosenLot&&!chosenAnimal?'page':undefined}>Todas</Link>{lots.map(l=><Link key={l.id} href={`?lote=${l.id}`} aria-current={chosenLot?.id===l.id?'page':undefined}>{l.nome}</Link>)}</nav>

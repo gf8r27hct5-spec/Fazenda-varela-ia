@@ -18,7 +18,7 @@ export function weightStats(animal: Animal, rows: Weight[], goal?: number | null
   });
   const last = entries.at(-1), current = last ? Number(last.peso_kg) : n(animal.peso_atual) ?? n(animal.peso_entrada);
   const gain = current != null && animal.peso_entrada != null ? current-Number(animal.peso_entrada) : null;
-  const days = daysBetween(animal.data_entrada, last?.data_pesagem || brazilToday());
+  const days = daysBetween(animal.data_entrada, animal.status==='ativo' ? brazilToday() : last?.data_pesagem || brazilToday());
   const recentGmd = last?.gmd ?? null;
   return { entries, current, gain, days, recentGmd, maximum: sorted.length ? Math.max(...sorted.map(row=>Number(row.peso_kg))) : n(animal.peso_entrada),
     remaining: goal != null && current != null ? Number(goal)-current : null,
@@ -33,11 +33,11 @@ export function lotWeights(animals: Animal[], rows: Weight[]) {
   const recentSince=Date.parse(`${brazilToday()}T12:00:00Z`)-30*86400000;
   const recent=current.filter(({stat})=>stat.entries.some(row=>Date.parse(`${row.data_pesagem}T12:00:00Z`)>=recentSince)).length;
   const gmDs=current.map(({stat})=>stat.recentGmd).filter((x):x is number=>x!=null);
-  const days=[...new Set(rows.filter(row=>active.some(a=>a.id===row.animal_id)).map(row=>row.data_pesagem))].sort();
+  const days=[...new Set([...rows.filter(row=>active.some(a=>a.id===row.animal_id)).map(row=>row.data_pesagem),...active.filter(a=>a.data_entrada&&a.peso_entrada!=null).map(a=>a.data_entrada!)])].sort();
   const chart=days.map(day=>{
     const measured=active.map(animal=>{
-      const last=rows.filter(row=>row.animal_id===animal.id && row.data_pesagem<=day).sort((a,b)=>a.data_pesagem.localeCompare(b.data_pesagem)).at(-1);
-      return last ? Number(last.peso_kg) : (animal.data_entrada && animal.data_entrada<=day ? n(animal.peso_entrada) : null);
+      const last=rows.filter(row=>row.animal_id===animal.id && row.data_pesagem===day).at(-1);
+      return last ? Number(last.peso_kg) : (animal.data_entrada===day ? n(animal.peso_entrada) : null);
     }).filter((x):x is number=>x!=null);
     return {day,average:measured.length ? measured.reduce((a,b)=>a+b,0)/measured.length : null,count:measured.length};
   });

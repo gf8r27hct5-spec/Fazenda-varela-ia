@@ -203,7 +203,7 @@ export async function createSanitaryRecord(form:FormData){
   const {error}=await db.rpc('registrar_manejo_corte',{p_lote_id:lot,p_animais:animalIds,p_dados:data});
   if(error)redirect('/painel/sanidade?erro=1');
   revalidatePath('/painel/sanidade');revalidatePath(`/lotes/${lot}`);for(const animal of animalIds)revalidatePath(`/animais/${animal}`);
-  redirect('/painel/sanidade?salvo=1');
+  redirect(`/painel/sanidade?lote=${lot}&salvo=1`);
 }
 
 export async function createExitRecord(form:FormData){

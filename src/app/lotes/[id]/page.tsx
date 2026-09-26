@@ -47,11 +47,11 @@ export default async function Lot({ params, searchParams }: { params: Promise<{ 
   const useGroup=!!latestGroup && (!measurements.chart.length || latestGroup.data_pesagem>measurements.chart.at(-1)!.day);
   const average=useGroup?Number(latestGroup!.peso_kg):measurements.average;
   const total=useGroup&&animals.length?Number(latestGroup!.peso_kg)*animals.length:measurements.total;
-  const history=[...measurements.chart.filter(x=>x.average!=null).map(x=>({day:x.day,average:x.average!})),...groupWeights.map(x=>({day:x.data_pesagem,average:Number(x.peso_kg)}))].sort((a,b)=>a.day.localeCompare(b.day));
+  const history=[...measurements.chart.filter(x=>x.average!=null&&x.count===animals.length).map(x=>({day:x.day,average:x.average!})),...groupWeights.map(x=>({day:x.data_pesagem,average:Number(x.peso_kg)}))].sort((a,b)=>a.day.localeCompare(b.day));
   const last=history.at(-1),before=[...history].reverse().find(x=>last&&x.day<last.day);
   const interval=last&&before?daysBetween(before.day,last.day):null;
   const gmd=useGroup&&last&&before&&interval&&interval>0?(last.average-before.average)/interval:measurements.gmd;
-  const entered = lot.data_entrada ? daysBetween(lot.data_entrada,brazilToday()) : null;
+  const entered = lot.data_entrada ? daysBetween(lot.data_entrada,brazilToday()) : lotAnimals.map(a=>a.data_entrada).filter(Boolean).length?daysBetween(lotAnimals.map(a=>a.data_entrada).filter(Boolean).sort()[0],brazilToday()):null;
   const meta = lot.peso_meta == null ? null : Number(lot.peso_meta);
   const toGoal = meta != null && average != null && gmd != null && gmd > 0 ? Math.max(0, Math.ceil((meta - average) / gmd)) : null;
   const purchase = animals.some(animal => animal.valor_compra != null) ? sum(animals, 'valor_compra') : null;
