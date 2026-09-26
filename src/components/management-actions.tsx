@@ -34,7 +34,7 @@ export function AnimalActions({ animal, lots, relations, action, status, error }
   const statuses = [['inativo', 'Arquivar/Inativar'], ['ativo', 'Reativar']] as const;
   return <><details className="actions-menu"><summary aria-label="Ações do animal"><Icon name="dots" size={22} /> Ações</summary><div className="actions-links">
     <Link href={`${base}?acao=editar#acoes`}>Editar</Link><Link href={`${base}?acao=mover#acoes`}>Mover de lote</Link>
-    {statuses.filter(([value]) => value !== animal.status).map(([value, label]) => <Link key={value} href={`${base}?acao=status&status=${value}#acoes`}>{label}</Link>)}
+    {statuses.filter(([value]) => (animal.status==='ativo'&&value==='inativo')||(animal.status==='inativo'&&value==='ativo')).map(([value, label]) => <Link key={value} href={`${base}?acao=status&status=${value}#acoes`}>{label}</Link>)}
     {animal.status==='ativo'&&<><Link href={`${base}?aba=saida&tipo=venda#fechamento`}>Registrar venda</Link><Link href={`${base}?aba=saida&tipo=abate#fechamento`}>Registrar abate</Link><Link href={`${base}?aba=saida&tipo=morte#fechamento`}>Registrar morte</Link></>}
     <Link className="danger-link" href={`${base}?acao=excluir#acoes`}>Excluir cadastro</Link>
   </div></details>
@@ -47,7 +47,7 @@ export function AnimalActions({ animal, lots, relations, action, status, error }
       <label>Valor de compra (R$)<input type="number" step="0.01" min="0" name="valor_compra" defaultValue={String(animal.valor_compra || '')} /></label><label>Origem<input name="origem" defaultValue={String(animal.origem || '')} /></label><label>Observações<textarea name="observacoes" defaultValue={String(animal.observacoes || '')} /></label><button>Salvar alterações</button>
     </form></section>}
   {action === 'mover' && <section className="app-card management-panel" id="acoes"><h2>Mover de lote</h2><Feedback error={error} /><form action={moveCutAnimal} className="entry-form"><input type="hidden" name="id" value={id} /><label>Destino<select name="lote_id" defaultValue={String(animal.lote_id || '')}><option value="">Sem lote</option>{lots.map(lot => <option key={lot.id} value={lot.id}>{lot.nome}</option>)}</select></label><button>Confirmar mudança</button></form></section>}
-  {action === 'status' && statuses.some(([value]) => value === status) && <section className="app-card management-panel" id="acoes"><h2>{statuses.find(([value]) => value === status)?.[1]}</h2><Feedback error={error} /><p>O animal permanecerá no histórico. Animais inativos, vendidos, abatidos ou mortos deixam de contar como ativos.</p><form action={changeCutAnimalStatus} className="entry-form"><input type="hidden" name="id" value={id} /><input type="hidden" name="status" value={status} /><button>Confirmar alteração</button></form></section>}
+  {action === 'status' && statuses.some(([value]) => value === status) && ['ativo','inativo'].includes(String(animal.status)) && <section className="app-card management-panel" id="acoes"><h2>{statuses.find(([value]) => value === status)?.[1]}</h2><Feedback error={error} /><p>O animal permanecerá no histórico. Animais inativos, vendidos, abatidos ou mortos deixam de contar como ativos.</p><form action={changeCutAnimalStatus} className="entry-form"><input type="hidden" name="id" value={id} /><input type="hidden" name="status" value={status} /><button>Confirmar alteração</button></form></section>}
   {action === 'excluir' && relations && <ConfirmDelete entity="animal" id={id} relations={relations} related={relatedTotal(relations)} error={error} action={deleteCutAnimal} />}
   </>;
 }

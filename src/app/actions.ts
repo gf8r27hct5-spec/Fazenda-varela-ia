@@ -274,9 +274,12 @@ export async function changeCutAnimalStatus(form: FormData) {
   const { db, id: farmId } = await context();
   const id = field(form, 'id'), status = field(form, 'status');
   if (!uuid(id) || !['ativo', 'inativo'].includes(status)) redirect('/painel/rebanho?erro=1');
-  const { data: animal, error: lookup } = await db.from('animais').select('lote_id').eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
+  const { data: animal, error: lookup } = await db.from('animais').select('lote_id,status').eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').maybeSingle();
   if (lookup || !animal) redirect('/painel/rebanho?erro=1');
-  const { error } = await db.from('animais').update({ status }).eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte');
+  if (!((animal.status==='ativo'&&status==='inativo')||(animal.status==='inativo'&&status==='ativo'))) redirect(`/animais/${id}?erro=1`);
+  const { data: closed } = await db.from('saidas_corte').select('id').eq('animal_id',id).eq('fazenda_id',farmId).maybeSingle();
+  if (closed) redirect(`/animais/${id}?erro=1`);
+  const { error } = await db.from('animais').update({ status }).eq('id', id).eq('fazenda_id', farmId).eq('sistema', 'corte').eq('status',animal.status);
   if (error) redirect(`/animais/${id}?acao=status&erro=1`);
   revalidatePath('/painel'); revalidatePath('/painel/rebanho');
   if (animal.lote_id) revalidatePath(`/lotes/${animal.lote_id}`);
