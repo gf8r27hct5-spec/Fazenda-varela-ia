@@ -11,9 +11,12 @@ export function repairExtraction(fields:AiFields,input:string,knownBeefTags:stri
  if(f.vaca&&!speech.includes(normalized(f.vaca)))f.vaca='';
  if(f.previsao&&/\b(?:mes|semana) que vem\b/.test(speech))f.previsao='';
  if(/\b(?:ganhou|ganho)\s+\d+\s*kg\b/.test(speech)&&!/(?:pesou|pesei|peso atual)/.test(speech)&&f.tipo==='pesagem_animal')f.quantidade='';
+ if(/\b(?:ganhou|ganho)\s+\d+\s*kg\b/.test(speech)&&!/(?:pesou|pesei|peso atual)/.test(speech))f.tipo='indefinido';
  if(f.tipo==='parto'&&/\bbezerra\b/.test(speech))f.sexo='femea';
  if(f.tipo==='parto'&&/\bbezerro\s+mach[oa]\b/.test(speech))f.sexo='macho';
  if(/^(?:botei\s+\d+\s+na?\s+[a-z]\d+|deu\s+\d+\s+hoje|apliquei\s+\d+\s*ml|a\s+[a-z]\d+\s+saiu\s+hoje|cria\s+um\s+lote\s+novo|levei\s+o\s+lote\s+\d+\s+pro\s+pasto)/.test(speech))f.tipo='indefinido';
+ if(/^(?:gastei\s+\d+\s+no\s+lote\s+\d+|a\s+vaca\s+produziu\s+\d+|comprei\s+arame\s+pro\s+piquete\s+\d+)/.test(speech))f.tipo='indefinido';
+ if(f.tipo==='indefinido'){f.valor='';f.quantidade='';f.produto='';f.centro='';}
  const dairy=knownDairyNames.filter(name=>name&&normalized(input).includes(normalized(name)));
  if(dairy.length===1&&['leite_vaca','parto','prenhez','sanidade'].includes(f.tipo)&&!f.vaca)f.vaca=dairy[0];
  const individualWeight=input.match(/\b(?:pesei\s+(?:a\s+)?([a-z]\d{2,5})|(?:a\s+)?([a-z]\d{2,5})\s+(?:pesou|t[aá]\s+com)|registra\s+\d+(?:[.,]\d+)?\s*kg\s+pra\s+([a-z]\d{2,5}))\b/iu);
