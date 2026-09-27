@@ -63,7 +63,7 @@ export function prepare(value:unknown,ctx:Context){
  if(['pesagem_animal','pesagem_lote','leite_total','leite_vaca','estoque_entrada','estoque_saida'].includes(f.tipo))ask(qty===null||qty<=0,'Informe peso, litros ou quantidade.');
  if(['despesa','receita','conta_pagar'].includes(f.tipo))ask(f.descricao.length<2,'Informe uma descrição.');
  if(f.tipo==='sanidade')ask(!f.produto,'Informe o produto aplicado.');
- if(['observacao','mover_lote'].includes(f.tipo))ask(!f.descricao,'Informe a observação ou motivo da movimentação.');
+ if(f.tipo==='observacao')ask(!f.descricao,'Informe a observação.');
  if(f.tipo==='pesagem_lote')warnings.push('Peso médio do lote: este registro não substitui pesagens individuais.');
  if(['venda','abate','morte'].includes(f.tipo))warnings.push('Esta confirmação encerra o animal e gera o histórico de saída. Confira cuidadosamente.');
  output.animal_id=animal?.id||cow?.id||null;output.lote_id=lot?.id||(f.tipo==='sanidade'?animal?.lote_id:null)||null;output.estoque_id=stock?.id||null;output.centro_id=center?.id||null;

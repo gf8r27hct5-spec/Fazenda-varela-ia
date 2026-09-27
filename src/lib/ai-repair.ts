@@ -4,12 +4,22 @@ import type { AiFields } from '@/lib/ai-fields';
 export function repairExtraction(fields:AiFields,input:string,knownBeefTags:string[],knownDairyNames:string[]=[]):AiFields{
  const f={...fields};
  const normalized=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const speech=normalized(input);
+ // Uma entidade sugerida pelo modelo jamais vira vínculo se não apareceu na fala.
+ if(f.lote&&!speech.includes(normalized(f.lote)))f.lote='';
+ if(f.identificacao&&!speech.includes(normalized(f.identificacao)))f.identificacao='';
+ if(f.vaca&&!speech.includes(normalized(f.vaca)))f.vaca='';
+ if(f.previsao&&/\b(?:mes|semana) que vem\b/.test(speech))f.previsao='';
+ if(/\b(?:ganhou|ganho)\s+\d+\s*kg\b/.test(speech)&&!/(?:pesou|pesei|peso atual)/.test(speech)&&f.tipo==='pesagem_animal')f.quantidade='';
+ if(f.tipo==='parto'&&/\bbezerra\b/.test(speech))f.sexo='femea';
+ if(f.tipo==='parto'&&/\bbezerro\s+mach[oa]\b/.test(speech))f.sexo='macho';
+ if(/^(?:botei\s+\d+\s+na?\s+[a-z]\d+|deu\s+\d+\s+hoje|apliquei\s+\d+\s*ml|a\s+[a-z]\d+\s+saiu\s+hoje|cria\s+um\s+lote\s+novo|levei\s+o\s+lote\s+\d+\s+pro\s+pasto)/.test(speech))f.tipo='indefinido';
  const dairy=knownDairyNames.filter(name=>name&&normalized(input).includes(normalized(name)));
  if(dairy.length===1&&['leite_vaca','parto','prenhez','sanidade'].includes(f.tipo)&&!f.vaca)f.vaca=dairy[0];
  const individualWeight=input.match(/\b(?:pesei\s+(?:a\s+)?([a-z]\d{2,5})|(?:a\s+)?([a-z]\d{2,5})\s+(?:pesou|t[aá]\s+com)|registra\s+\d+(?:[.,]\d+)?\s*kg\s+pra\s+([a-z]\d{2,5}))\b/iu);
  if(individualWeight&&/\b\d+(?:[.,]\d+)?\s*kg\b/iu.test(input)&&!/\bpeso final\b/iu.test(input))f.tipo='pesagem_animal';
- const fuel=input.match(/\bcoloquei\s+(\d+(?:[.,]\d+)?)\s+reais?\s+de\s+(diesel|gasolina)\s+(?:no|na|para)\s+(.+)/iu);
- if(fuel){f.tipo='despesa';f.valor=fuel[1];if(!f.descricao)f.descricao=`${fuel[2]} ${fuel[3]}`.trim();}
+ const fuel=input.match(/\b(?:coloquei|gastei|paguei)\s+(\d+(?:[.,]\d+)?)\s+reais?\s+(?:de|com)\s+(diesel|gasolina)\s+(?:(no|na|para)\s+(.+))?/iu);
+ if(fuel){f.tipo='despesa';f.valor=fuel[1];f.descricao=`Abastecimento de ${fuel[2]}${fuel[3]?` ${fuel[3]} ${fuel[4]}`:''}`.trim();}
  if(['despesa','receita','conta_pagar'].includes(f.tipo)&&/\b(?:diesel|gasolina|combust[ií]vel)\b/iu.test(input))f.categoria='Combustível';
  const tag=input.match(/\b([a-z]\d{2,5})\b/i)?.[1];
  if(tag&&['pesagem_animal','sanidade','venda','abate','morte','observacao','mover_lote'].includes(f.tipo)){
@@ -33,10 +43,14 @@ export function repairExtraction(fields:AiFields,input:string,knownBeefTags:stri
    if(f.lote.toLowerCase().includes('piquete'))f.lote='';
   }
   if(/\bvaqueiro\b/i.test(input)&&/\b(consert|paguei|di[aá]ria|servi[cç]o)/i.test(input))f.categoria='Mão de obra';
+  else if(/\b(sal[aá]rio|di[aá]ria|funcion[aá]rio|ajudante)\b/iu.test(input))f.categoria='Mão de obra';
+  else if(/\b(manuten[cç][aã]o|consertando|arrumando|arrumar)\b/iu.test(input)&&f.categoria!=='Combustível')f.categoria='Manutenção';
  }
  if(f.tipo==='sanidade'&&!f.produto){
+  const dosed=input.match(/\b(?:apliquei|dei|usei)\s+\d+(?:[.,]\d+)?\s*ml\s+de\s+([\p{L}][\p{L}\d-]+)\b/iu);
+  if(dosed)f.produto=dosed[1];
   const product=input.match(/\b(?:apliquei|dei|usei)\s+([\p{L}\d][\p{L}\d -]{0,60}?)\s+(?:no|na|em)\s+(?:lote|vaca|animal|boi|novilha)\b/iu);
-  if(product)f.produto=product[1].trim();
+  if(product&&!f.produto)f.produto=product[1].trim();
  }
  if(/\b(?:comprei|chegaram|entraram|tirei|usei|coloquei)\b/iu.test(input)){
   const purchase=input.match(/\b(\d+(?:[.,]\d+)?)\s+(sacos?|quilos?|kg|litros?|frascos?|unidades?)\s+de\s+(.+?)(?=\s+(?:a|por|do|no|na|para)\s+(?:R\$\s*)?\d|\s+(?:do|no|na|para)\s+(?:lote|estoque|cocho|vacas?|animais?)\b|[.!?]|$)/iu);
