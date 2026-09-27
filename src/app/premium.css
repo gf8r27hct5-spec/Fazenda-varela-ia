@@ -6,6 +6,23 @@
   --olive: #7c9652;
   --border: #e2e8dd;
 }
+.repro-hero { padding: 25px 26px; margin: 0 0 20px; color: #f4f6e9; border-radius: 25px; background: radial-gradient(circle at 95% 4%, #71935985, transparent 42%), linear-gradient(125deg,#063e32,#1d6440); box-shadow: 0 14px 31px #153c2930; }
+.repro-hero > span { font-size: 10px; letter-spacing: .16em; color: #d2dfb5; font-weight: 800; }
+.repro-hero h2 { font: 700 clamp(27px,5vw,37px)/1.05 Outfit,sans-serif; letter-spacing: -.045em; max-width: 470px; margin: 16px 0 9px; }
+.repro-hero p { font-size: 13px; line-height: 1.6; color: #ddebd9; }
+.repro-hero > div { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 23px; }
+.repro-hero a { display: inline-flex; align-items: center; min-height: 44px; padding: 9px 15px; background: #f7f8ed; border-radius: 12px; font-weight: 800; font-size: 12px; color: #164432; }
+.repro-hero a + a { background: #ffffff1c; color: white; border: 1px solid #ffffff4d; }
+.repro-alert-list { display: grid; gap: 8px; }
+.repro-alert-list a { display: flex; justify-content: space-between; gap: 8px; align-items: center; min-height: 45px; border-radius: 12px; padding: 10px 13px; background: #fff6e9; color: #794d16; font-size: 13px; }
+.birth-counter { display: flex; align-items: center; width: fit-content; margin-top: 9px; border: 1px solid #dce6db; border-radius: 12px; overflow: hidden; }
+.birth-counter button { width: 45px; height: 43px; padding: 0; border: 0; border-radius: 0; color: #154732; background: #f0f5eb; font-size: 23px; }
+.birth-counter strong { min-width: 40px; text-align: center; }
+.calf-fieldset { min-width: 0; border: 1px solid #d8e3d5; border-radius: 17px; padding: 17px; margin: 10px 0; background: #f9fbf7; }
+.calf-fieldset legend { padding: 0 8px; font-size: 13px; font-weight: 800; color: #23533a; }
+.birth-history { border-top: 1px solid #e4eae0; padding: 16px 0; }
+.birth-history > strong,.birth-history > small { display: block; }
+.birth-history > small { color: #7c8d7e; margin: 4px 0 9px; }
 .app { background: radial-gradient(circle at 80% 5%, #eef0e4, transparent 36%), var(--cream); }
 .app-header {
   background: linear-gradient(110deg, #073c2d, #0b5139 63%, #064330);

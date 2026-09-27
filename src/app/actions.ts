@@ -127,7 +127,7 @@ export async function createAnimal(formData: FormData) {
   const status = 'ativo';
   if (loteId) { const { data: lot } = await supabase.from('lotes').select('id').eq('id', loteId).eq('fazenda_id', farm.id).eq('sistema','corte').maybeSingle(); if (!lot) redirect(`/painel/${modulo === 'leite' ? 'leite' : 'rebanho'}?erro=1`); }
   const bezerroId = modulo === 'leite' ? String(formData.get('bezerro_id') || '') : '';
-  if (bezerroId) { const { data: calf } = await supabase.from('animais').select('id').eq('id', bezerroId).eq('fazenda_id',farm.id).eq('sistema','leite').maybeSingle(); if (!calf) redirect('/painel/leite?erro=1'); }
+  if (bezerroId) { const { data: calf } = await supabase.from('animais').select('id').eq('id', bezerroId).eq('fazenda_id',farm.id).eq('sistema','leite').eq('categoria','Cria leiteira').maybeSingle(); if (!calf) redirect('/painel/leite?erro=1'); }
   const photo = formData.get('foto');
   let photoPath: string | null = null;
   if (photo instanceof File && photo.size) {
@@ -149,6 +149,9 @@ export async function createAnimal(formData: FormData) {
     origem: String(formData.get('origem') || '').trim() || null, foto_url: photoPath, bezerro_id: bezerroId || null,
     data_ultimo_parto: modulo === 'leite' ? String(formData.get('data_ultimo_parto') || '') || null : null,
     proxima_previsao_parto: modulo === 'leite' ? String(formData.get('proxima_previsao_parto') || '') || null : null,
+    prenhe: modulo === 'leite' && (String(formData.get('prenhe')||'')==='sim'||String(formData.get('situacao_leite')||'')==='Prenhe'),
+    data_cobertura: modulo === 'leite' ? String(formData.get('data_cobertura')||'')||null : null,
+    touro_semen: modulo === 'leite' ? String(formData.get('touro_semen')||'')||null : null,
   });
   if (error) {
     if (photoPath) await supabase.storage.from('fotos-animais').remove([photoPath]);
@@ -220,7 +223,85 @@ export async function createExitRecord(form:FormData){
   if(owned.lote_id)revalidatePath(`/lotes/${owned.lote_id}`);
   revalidatePath(`/animais/${animal}`);redirect(`/animais/${animal}?aba=saida&salvo=1`);
 }
-export async function createMilk(form:FormData){const {db,id}=await context();const liters=amount(form,'litros'),day=field(form,'data_producao'),price=field(form,'preco_litro');if(!(liters>0)||!/^\d{4}-\d{2}-\d{2}$/.test(day)||price&&amount(form,'preco_litro')<0)fail('leite');const turno=field(form,'turno');if(turno&&!['manha','tarde','noite','total_dia'].includes(turno))fail('leite');const animalId=field(form,'animal_id');if(animalId){const {data:animal}=await db.from('animais').select('id,sistema').eq('id',animalId).eq('fazenda_id',id).maybeSingle();if(!animal||animal.sistema!=='leite')fail('leite');}const {error}=await db.from('producao_leite').insert({fazenda_id:id,animal_id:animalId||null,litros:liters,data_producao:day,turno:turno||null,preco_litro:price?amount(form,'preco_litro'):null});if(error)fail('leite');done('leite')}
+export async function createMilk(form:FormData){const {db,id}=await context();const liters=amount(form,'litros'),day=field(form,'data_producao'),price=field(form,'preco_litro');if(!(liters>0)||!/^\d{4}-\d{2}-\d{2}$/.test(day)||price&&amount(form,'preco_litro')<0)fail('leite');const turno=field(form,'turno');if(turno&&!['manha','tarde','noite','total_dia'].includes(turno))fail('leite');const animalId=field(form,'animal_id');if(animalId){const {data:animal}=await db.from('animais').select('id,sistema,categoria').eq('id',animalId).eq('fazenda_id',id).maybeSingle();if(!animal||animal.sistema!=='leite'||animal.categoria==='Cria leiteira')fail('leite');}const {error}=await db.from('producao_leite').insert({fazenda_id:id,animal_id:animalId||null,litros:liters,data_producao:day,turno:turno||null,preco_litro:price?amount(form,'preco_litro'):null});if(error)fail('leite');done('leite')}
+
+const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`));
+const dairyError = (code='dados'): never => redirect(`/painel/reproducao?erro=${code}`);
+
+export async function saveDairyPregnancy(form: FormData) {
+  const {db,id}=await context();const cow=field(form,'vaca_id'),pregnant=field(form,'prenhe')==='sim';
+  const covered=field(form,'data_cobertura'),due=field(form,'proxima_previsao_parto'),bull=field(form,'touro_semen'),note=field(form,'observacoes_reproducao');
+  if(!uuid(cow)||covered&&!validDate(covered)||due&&!validDate(due)||covered&&due&&due<covered||bull.length>120||note.length>2000) dairyError();
+  const {data,error:lookup}=await db.from('animais').select('id').eq('id',cow).eq('fazenda_id',id).eq('sistema','leite').neq('categoria','Cria leiteira').maybeSingle();
+  if(lookup||!data) dairyError();
+  const {error}=await db.from('animais').update({prenhe:pregnant,data_cobertura:pregnant?covered||null:null,touro_semen:pregnant?bull||null:null,proxima_previsao_parto:pregnant?due||null:null,observacoes_reproducao:note||null}).eq('id',cow).eq('fazenda_id',id).eq('sistema','leite');
+  if(error)redirect(`/animais/${cow}?aba=reproducao&erro=1`);
+  revalidatePath(`/animais/${cow}`);revalidatePath('/painel/reproducao');revalidatePath('/painel/leite');
+  redirect(`/animais/${cow}?aba=reproducao&salvo=1`);
+}
+
+export async function registerDairyBirth(form: FormData) {
+  const {db,id}=await context();const cow=field(form,'vaca_id'),day=field(form,'data_parto'),type=field(form,'tipo_parto');
+  const count=Number(field(form,'quantidade_crias'));
+  if(!uuid(cow)||!validDate(day)||!Number.isInteger(count)||count<1||count>8||type&&!['normal','assistido','cesarea'].includes(type)) dairyError();
+  const {data:mother}=await db.from('animais').select('id').eq('id',cow).eq('fazenda_id',id).eq('sistema','leite').neq('categoria','Cria leiteira').eq('status','ativo').maybeSingle();if(!mother)dairyError();
+  const calves=Array.from({length:count},(_,i)=>({
+    identificacao:field(form,`identificacao_${i}`),nome:field(form,`nome_${i}`),sexo:field(form,`sexo_${i}`),raca:field(form,`raca_${i}`),
+    peso_nascer:field(form,`peso_nascer_${i}`),situacao:field(form,`situacao_${i}`),observacoes:field(form,`observacoes_${i}`),pai_touro:field(form,`pai_touro_${i}`),
+  }));
+  if(calves.some(c=>!['viva','natimorta','morreu_depois'].includes(c.situacao)||c.situacao==='viva'&&!c.identificacao||c.identificacao.length>80||c.nome.length>120||!['','macho','femea'].includes(c.sexo)||c.peso_nascer&&(!(Number(c.peso_nascer)>0)||!Number.isFinite(Number(c.peso_nascer))))) dairyError();
+  const {error}=await db.rpc('registrar_parto_leite',{p_mae_id:cow,p_data:day,p_tipo:type||null,p_lactacao:field(form,'lactacao')==='sim',p_observacoes:field(form,'observacoes')||null,p_crias:calves});
+  if(error)redirect(`/painel/reproducao/parto?mae=${cow}&erro=1`);
+  revalidatePath(`/animais/${cow}`);revalidatePath('/painel/reproducao');revalidatePath('/painel/leite');revalidatePath('/painel');
+  redirect(`/animais/${cow}?aba=reproducao&salvo=parto`);
+}
+
+export async function createDairyCalf(form:FormData){
+  const {db,id}=await context();const cow=field(form,'mae_id'),tag=field(form,'identificacao'),birth=field(form,'data_nascimento');
+  const sex=field(form,'sexo'),situation=field(form,'situacao_cria'),weight=field(form,'peso_entrada'),current=field(form,'peso_atual'),wean=field(form,'data_desmame'),planned=field(form,'data_prevista_desmame');
+  if(!uuid(cow)||!tag||tag.length>80||!validDate(birth)||!['','macho','femea'].includes(sex)||!['mamando','desmamada','vendida','transferida','morta'].includes(situation)
+    ||weight&&!(Number(weight)>0)||current&&!(Number(current)>0)||wean&&!validDate(wean)||planned&&!validDate(planned)||wean&&wean<birth||planned&&planned<birth) dairyError();
+  const {data:mother}=await db.from('animais').select('id').eq('id',cow).eq('fazenda_id',id).eq('sistema','leite').neq('categoria','Cria leiteira').maybeSingle();if(!mother)dairyError();
+  const photo=form.get('foto');let photoPath:string|null=null;
+  if(photo instanceof File&&photo.size){const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/heic':'heic'} as Record<string,string>)[photo.type];if(!ext||photo.size>3670016)dairyError('foto');photoPath=`${id}/${crypto.randomUUID()}.${ext}`;const {error}=await db.storage.from('fotos-animais').upload(photoPath,photo,{contentType:photo.type,upsert:false});if(error)dairyError('foto')}
+  const {data,error}=await db.from('animais').insert({fazenda_id:id,mae_id:cow,identificacao:tag,nome:field(form,'nome')||null,sexo:sex||null,raca:field(form,'raca')||null,
+    sistema:'leite',categoria:'Cria leiteira',status:situation==='morta'?'morto':situation==='vendida'?'vendido':situation==='transferida'?'transferido':'ativo',situacao_cria:situation,
+    data_nascimento:birth,data_entrada:birth,peso_entrada:weight?Number(weight):null,peso_atual:current?Number(current):weight?Number(weight):null,
+    data_desmame:wean||null,data_prevista_desmame:planned||null,pai_touro:field(form,'pai_touro')||null,observacoes:field(form,'observacoes')||null,foto_url:photoPath,
+  }).select('id').single();
+  if(error||!data){if(photoPath)await db.storage.from('fotos-animais').remove([photoPath]);dairyError('cadastro')}
+  revalidatePath(`/animais/${cow}`);revalidatePath('/painel/reproducao');revalidatePath('/painel/leite');
+  if(!data)redirect('/painel/reproducao?erro=cadastro');
+  redirect(`/animais/${data.id}?salvo=1`);
+}
+
+export async function updateDairyCalf(form:FormData){
+  const {db,id}=await context();const calf=field(form,'cria_id'),situation=field(form,'situacao_cria'),wean=field(form,'data_desmame'),planned=field(form,'data_prevista_desmame');
+  if(!uuid(calf)||!['mamando','desmamada','vendida','transferida','morta','natimorta'].includes(situation)||wean&&!validDate(wean)||planned&&!validDate(planned)) dairyError();
+  const {data}=await db.from('animais').select('data_nascimento').eq('id',calf).eq('fazenda_id',id).eq('sistema','leite').eq('categoria','Cria leiteira').maybeSingle();if(!data||wean&&data.data_nascimento&&wean<data.data_nascimento)dairyError();
+  const {error}=await db.from('animais').update({situacao_cria:situation,status:situation==='morta'||situation==='natimorta'?'morto':situation==='vendida'?'vendido':situation==='transferida'?'transferido':'ativo',
+    data_desmame:wean||null,data_prevista_desmame:planned||null,nome:field(form,'nome')||null,raca:field(form,'raca')||null,pai_touro:field(form,'pai_touro')||null,observacoes:field(form,'observacoes')||null,
+  }).eq('id',calf).eq('fazenda_id',id).eq('sistema','leite');
+  if(error)redirect(`/animais/${calf}?erro=1`);
+  revalidatePath(`/animais/${calf}`);revalidatePath('/painel/leite');revalidatePath('/painel/reproducao');redirect(`/animais/${calf}?salvo=1`);
+}
+
+export async function registerDairyCalfWeight(form:FormData){
+  const {db,id}=await context();const calf=field(form,'cria_id'),day=field(form,'data_pesagem'),weight=amount(form,'peso_kg');
+  if(!uuid(calf)||!validDate(day)||!(weight>0)) dairyError();
+  const {data}=await db.from('animais').select('id').eq('id',calf).eq('fazenda_id',id).eq('sistema','leite').eq('categoria','Cria leiteira').maybeSingle();if(!data)dairyError();
+  const {error}=await db.rpc('registrar_peso_cria_leite',{p_cria_id:calf,p_data:day,p_peso:weight});if(error)redirect(`/animais/${calf}?erro=peso`);
+  revalidatePath(`/animais/${calf}`);revalidatePath('/painel/reproducao');redirect(`/animais/${calf}?salvo=peso`);
+}
+
+export async function transferDairyCalfToBeef(form:FormData){
+  const {db,id}=await context();const calf=field(form,'cria_id');if(!uuid(calf)||field(form,'confirmacao')!=='TRANSFERIR')dairyError();
+  const {data}=await db.from('animais').select('id,sexo').eq('id',calf).eq('fazenda_id',id).eq('sistema','leite').eq('categoria','Cria leiteira').eq('status','ativo').maybeSingle();if(!data)redirect('/painel/reproducao?erro=dados');
+  const {error}=await db.from('animais').update({sistema:'corte',categoria:data.sexo==='femea'?'Bezerra':'Bezerro',situacao_cria:'transferida',situacao_leite:null,lote_id:null}).eq('id',calf).eq('fazenda_id',id).eq('sistema','leite');
+  if(error)redirect(`/animais/${calf}?erro=1`);
+  revalidatePath(`/animais/${calf}`);revalidatePath('/painel/reproducao');revalidatePath('/painel/leite');revalidatePath('/painel/rebanho');revalidatePath('/painel');
+  redirect(`/animais/${calf}?salvo=transferencia`);
+}
 export async function createStock(form:FormData){const {db,id}=await context();const nome=field(form,'nome'),unit=field(form,'unidade');if(!nome||!unit||amount(form,'quantidade_atual')<0)fail('estoque');const {error}=await db.from('estoque').insert({fazenda_id:id,nome,categoria:field(form,'categoria'),unidade:unit,quantidade_atual:amount(form,'quantidade_atual'),estoque_minimo:amount(form,'estoque_minimo'),consumo_medio_dia:amount(form,'consumo_medio_dia')});if(error)fail('estoque');done('estoque')}
 export async function createTransaction(form:FormData){const {db,id}=await context();const tipo=field(form,'tipo'),valor=amount(form,'valor'),descricao=field(form,'descricao'),categoria=field(form,'categoria'),day=field(form,'data_competencia'),lot=field(form,'lote_id'),center=field(form,'centro_custo_id');if(!['receita','despesa'].includes(tipo)||!(valor>0)||!descricao||!categoria||!/^\d{4}-\d{2}-\d{2}$/.test(day))fail('registrar');if(lot){const {data}=await db.from('lotes').select('id').eq('id',lot).eq('fazenda_id',id).maybeSingle();if(!data)fail('registrar')}if(center){const {data}=await db.from('centros_custo').select('id').eq('id',center).eq('fazenda_id',id).maybeSingle();if(!data)fail('registrar')}const {error}=await db.from('transacoes').insert({fazenda_id:id,tipo,valor,descricao,categoria,data_competencia:day,status:field(form,'status')==='pendente'?'pendente':'pago',lote_id:lot||null,centro_custo_id:center||null,origem:'manual'});if(error)fail('registrar');revalidatePath('/painel/financeiro');done('registrar')}
 
