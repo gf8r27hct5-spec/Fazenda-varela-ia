@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiContext, prepare, schema } from '@/lib/ai-register';
+import { aiContext, prepare, safeFields, schema } from '@/lib/ai-register';
+import { repairExtraction } from '@/lib/ai-repair';
 export const runtime='nodejs';
 const json=(body:object,status=200)=>NextResponse.json(body,{status,headers:{'Cache-Control':'no-store'}});
 export async function POST(request:NextRequest){
@@ -26,7 +27,7 @@ export async function POST(request:NextRequest){
   }
   const response=await upstream.json();const content=response.output?.flatMap((x:{content?:{type:string;text?:string}[]})=>x.content||[]).find((x:{type:string})=>x.type==='output_text')?.text;
   if(!content)return json({error:'A IA não conseguiu interpretar a frase. Detalhe a operação.'},422);
-  const parsed=prepare(JSON.parse(content),ctx);
+  const parsed=prepare(repairExtraction(safeFields(JSON.parse(content)),input,ctx.animals.filter(x=>x.sistema==='corte').map(x=>x.identificacao||'')),ctx);
   const {data,error}=await ctx.db.rpc('criar_rascunho_ia',{p_fazenda:ctx.farm.id,p_tipo:source,p_texto:input,p_resultado:parsed.fields});
   if(error||!data)return json({error:'Não foi possível criar a prévia. Tente novamente.'},500);
   return json({id:data,...parsed});
