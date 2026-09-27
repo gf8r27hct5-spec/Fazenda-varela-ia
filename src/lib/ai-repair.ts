@@ -17,6 +17,7 @@ export function repairExtraction(fields:AiFields,input:string,knownBeefTags:stri
   if(owned&&!f.identificacao)f.identificacao=owned;
  }
  if(['despesa','receita','conta_pagar'].includes(f.tipo)){
+  if(f.centro&&!/\b(?:centro\s+de\s+custo|piquete\s+[\p{L}\d-]+)\b/iu.test(input))f.centro='';
   if(!f.descricao&&f.tipo==='despesa'){
    const expense=input.match(/\b(?:gastei|paguei)\s+(?:R\$\s*)?(?:\d+(?:[.,]\d+)?|um|uma)\s*(?:reais?|real)?\s+(?:com|em|para|pelo|pela|pra|pro|de|no|na)\s+(.+)/iu);
    if(expense)f.descricao=expense[1].replace(/\s+(?:hoje|ontem)\s*[.!?]*$/iu,'').replace(/[.!?]+$/u,'').trim();
@@ -47,7 +48,7 @@ export function repairExtraction(fields:AiFields,input:string,knownBeefTags:stri
    if(!f.item||normalized(f.item)===normalized(product)||[unit,purchase[2].toLowerCase()].some(prefix=>f.item.toLowerCase().startsWith(prefix+' de ')))f.item=specificProduct;
    if(!f.unidade||f.unidade.toLowerCase()==='unidade')f.unidade=unit;
    if(!f.quantidade)f.quantidade=purchase[1];
-   if(/\bsal\s+proteinad[oa]\b/i.test(product)&&!f.categoria)f.categoria='Suplementação';
+   if(/\bproteinad[oa]\b/i.test(product)&&!f.categoria)f.categoria='Suplementação';
    const price=input.match(/\b(?:a|por)\s+(?:R\$\s*)?(\d+(?:[.,]\d+)?)\s+reais?\s+cada\b/iu);
    if(price&&f.tipo==='estoque_entrada')f.valor=String(Math.round(Number(purchase[1].replace(',','.'))*Number(price[1].replace(',','.'))*100)/100);
   }

@@ -30,6 +30,7 @@ function check(input,model,expected){
  for(const [key,value] of Object.entries(expected))assert.equal(f[key],value,`${input}: campo ${key}`);
 }
 check('Coloquei 250 reais de diesel no carro','estoque_entrada',{tipo:'despesa',valor:'250',categoria:'Combustível',descricao:'diesel carro'});
+assert.equal(repairExtraction({tipo:'despesa',centro:'carro',categoria:'',descricao:'',lote:'',identificacao:'',produto:''},'Coloquei 250 reais de diesel no carro',tags).centro,'','Veículo citado não autoriza criar centro de custo.');
 check('Coloquei 200 reais de diesel no trator','despesa',{tipo:'despesa',valor:'200',categoria:'Combustível',descricao:'diesel trator'});
 check('Gastei 180 reais de gasolina na Ranger','despesa',{categoria:'Combustível',descricao:'gasolina na Ranger'});
 check('Comprei 6 sacos de proteinado 30% a 160 reais cada','estoque_entrada',{item:'proteinado 30%',quantidade:'6',unidade:'saco',valor:'960'});
