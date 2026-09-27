@@ -36,6 +36,7 @@ export function prepare(value:unknown,ctx:Context){
  ask(!types.includes(f.tipo as typeof types[number]),'Escolha uma operação reconhecida.');
  ask(!/^\d{4}-\d{2}-\d{2}$/.test(f.data)||Number.isNaN(Date.parse(f.data+'T12:00:00Z')),'Informe uma data válida.');
  const money=numeric(f.valor),qty=numeric(f.quantidade);
+ output.valor=money;output.quantidade=qty;
  ask(f.valor!==''&&(money===null||!Number.isFinite(money)||money<0),'Revise o valor informado.');
  ask(f.quantidade!==''&&(qty===null||!Number.isFinite(qty)||qty<=0),'Revise a quantidade, o peso ou os litros.');
  const beef=ctx.animals.filter(x=>x.sistema==='corte'),dairy=ctx.animals.filter(x=>x.sistema==='leite'&&x.categoria!=='Cria leiteira');
