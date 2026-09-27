@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiContext } from '@/lib/ai-register';
+import { createClient } from '@/lib/supabase/server';
 export const runtime='nodejs';
 export async function POST(request:NextRequest){
  try{
   if(request.headers.get('origin')!==request.nextUrl.origin)return NextResponse.json({error:'Origem inválida.'},{status:403});
-  await aiContext();
+  const db=await createClient(),{data:{user}}=await db.auth.getUser();
+  if(!user)return NextResponse.json({error:'Entre novamente para usar o microfone.'},{status:401});
+  const {data:farm}=await db.from('fazendas').select('id').eq('proprietario_id',user.id).limit(1).maybeSingle();
+  if(!farm)return NextResponse.json({error:'Fazenda indisponível para esta conta.'},{status:403});
   if(!process.env.OPENAI_API_KEY)return NextResponse.json({error:'A IA de voz ainda não está configurada no servidor.'},{status:503});
   const input=await request.formData(),file=input.get('audio');
   if(!(file instanceof File)||file.size<100||file.size>12_000_000||!file.type.startsWith('audio/'))return NextResponse.json({error:'Áudio inválido ou muito longo (máximo 12 MB).'},{status:400});
