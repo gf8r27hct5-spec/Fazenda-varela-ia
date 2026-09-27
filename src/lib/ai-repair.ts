@@ -9,6 +9,10 @@ export function repairExtraction(fields:AiFields,input:string,knownBeefTags:stri
   if(owned&&!f.identificacao)f.identificacao=owned;
  }
  if(['despesa','receita','conta_pagar'].includes(f.tipo)){
+  if(!f.descricao&&f.tipo==='despesa'){
+   const expense=input.match(/\b(?:gastei|paguei)\s+(?:R\$\s*)?(?:\d+(?:[.,]\d+)?|um|uma)\s*(?:reais?|real)?\s+(?:com|em|para|pelo|pela)\s+(.+)/iu);
+   if(expense)f.descricao=expense[1].replace(/\s+(?:hoje|ontem)\s*[.!?]*$/iu,'').replace(/[.!?]+$/u,'').trim();
+  }
   const piquete=input.match(/\bpiquete\s+([\p{L}\d-]+)\b/iu);
   if(piquete){
    const center=`Piquete ${piquete[1]}`;
