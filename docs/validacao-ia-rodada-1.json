@@ -1,0 +1,1695 @@
+[
+  {
+    "category": "financeiro",
+    "phrase": "Paguei 150 reais pro vaqueiro consertar a cerca",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "150"
+      ],
+      [
+        "Categoria",
+        "Mão de obra"
+      ],
+      [
+        "Centro de custo",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Pagamento para vaqueiro consertar a cerca"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "vaqueiro"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "financeiro",
+    "phrase": "Gastei 90 reais com material para o piquete 3",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "90"
+      ],
+      [
+        "Categoria",
+        "Não informado"
+      ],
+      [
+        "Centro de custo",
+        "Piquete 3"
+      ],
+      [
+        "Descrição",
+        "material para o piquete 3"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Centro de custo novo: será criado ao confirmar.",
+      "O lote informado não foi localizado nesta fazenda."
+    ]
+  },
+  {
+    "category": "combustível",
+    "phrase": "Coloquei 200 reais de diesel no trator",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "200"
+      ],
+      [
+        "Categoria",
+        "Combustível"
+      ],
+      [
+        "Centro de custo",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "diesel no trator"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "combustível",
+    "phrase": "Gastei 180 reais de gasolina na Ranger",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "180"
+      ],
+      [
+        "Categoria",
+        "Combustível"
+      ],
+      [
+        "Centro de custo",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Gasto de combustível na Ranger"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "combustível",
+    "phrase": "Paguei 300 reais de diesel para trabalhar no pasto",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "300"
+      ],
+      [
+        "Categoria",
+        "Combustível"
+      ],
+      [
+        "Centro de custo",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "diesel para trabalho no pasto"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "estoque",
+    "phrase": "Comprei proteinado 30% para os animais de corte",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "estoque_entrada"
+      ],
+      [
+        "Data",
+        "Não informado"
+      ],
+      [
+        "Valor total (R$)",
+        "Não informado"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "Não informado"
+      ],
+      [
+        "Item de estoque",
+        "proteinado 30%"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Unidade",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Compra para animais de corte"
+      ]
+    ],
+    "heading": "estoque entrada",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe uma data válida.",
+      "Para cadastrar um novo item, informe nome e unidade (por exemplo, saco).",
+      "Informe peso, litros ou quantidade.",
+      "Informe a quantidade e a unidade adquiridas."
+    ]
+  },
+  {
+    "category": "estoque",
+    "phrase": "Comprei 6 sacos de proteinado 30% a 160 reais cada",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "estoque_entrada"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "960"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "6"
+      ],
+      [
+        "Item de estoque",
+        "proteinado 30%"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Unidade",
+        "saco"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "estoque entrada",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Item novo: será cadastrado no estoque ao confirmar."
+    ]
+  },
+  {
+    "category": "estoque",
+    "phrase": "Chegaram 4 sacos de sal mineral",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "estoque_entrada"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "Não informado"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "4"
+      ],
+      [
+        "Item de estoque",
+        "sal mineral"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Unidade",
+        "saco"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "estoque entrada",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Item novo: será cadastrado no estoque ao confirmar."
+    ]
+  },
+  {
+    "category": "estoque",
+    "phrase": "Tirei 2 sacos de proteinado do estoque para o Lote 1",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "estoque_saida"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "Não informado"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "2"
+      ],
+      [
+        "Item de estoque",
+        "proteinado"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Unidade",
+        "saco"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "estoque saida",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Selecione um item de estoque existente.",
+      "O consumo para um lote precisa guardar o vínculo com o lote. Use o formulário Estoque para associar corretamente antes de confirmar."
+    ]
+  },
+  {
+    "category": "corte",
+    "phrase": "Mudei a B189 para o Lote 2",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "mover_lote"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "B189"
+      ],
+      [
+        "Lote de corte",
+        "Lote 2"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "mover lote",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Selecione um lote de corte ativo desta fazenda.",
+      "O lote informado não foi localizado nesta fazenda.",
+      "Informe a observação ou motivo da movimentação."
+    ]
+  },
+  {
+    "category": "corte",
+    "phrase": "Cria um lote novo com 10 novilhas",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "mover_lote"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "Não informado"
+      ],
+      [
+        "Lote de corte",
+        "novo lote"
+      ],
+      [
+        "Descrição",
+        "Criar um lote novo com 10 novilhas"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "mover lote",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe o brinco de um animal de corte ativo desta fazenda.",
+      "Selecione um lote de corte ativo desta fazenda.",
+      "O lote informado não foi localizado nesta fazenda.",
+      "Informe e revise os animais no módulo Corte; este comando não pode criar ou mover um grupo sem identificar cada um."
+    ]
+  },
+  {
+    "category": "corte",
+    "phrase": "Levei o Lote 1 pro pasto novo",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "mover_lote"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "Não informado"
+      ],
+      [
+        "Lote de corte",
+        "Lote 1"
+      ],
+      [
+        "Descrição",
+        "Levei o Lote 1 pro pasto novo"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "mover lote",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe o brinco de um animal de corte ativo desta fazenda.",
+      "Este manejo não tem operação estruturada neste fluxo. Registre pelo módulo correspondente; não será criado gasto ou pesagem automaticamente."
+    ]
+  },
+  {
+    "category": "pesagem",
+    "phrase": "Pesei a B189 e deu 241 kg",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "pesagem_animal"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "241"
+      ],
+      [
+        "Brinco do animal",
+        "B189"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "pesagem animal",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "pesagem",
+    "phrase": "O Lote 1 deu média de 228 kg",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "pesagem_lote"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "228"
+      ],
+      [
+        "Lote de corte",
+        "Lote 1"
+      ],
+      [
+        "Descrição",
+        "Média de peso do lote 1"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "pesagem lote",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Peso médio do lote: este registro não substitui pesagens individuais."
+    ]
+  },
+  {
+    "category": "pesagem",
+    "phrase": "A B205 ganhou 12 kg desde a última pesagem",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "pesagem_animal"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "12"
+      ],
+      [
+        "Brinco do animal",
+        "B205"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "pesagem animal",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "O ganho informado não é o peso atual. Informe o peso medido para registrar uma pesagem."
+    ]
+  },
+  {
+    "category": "sanidade",
+    "phrase": "Apliquei ivermectina no Lote 1",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "sanidade"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "Não informado"
+      ],
+      [
+        "Lote de corte",
+        "Lote 1"
+      ],
+      [
+        "Vaca leiteira",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Vacina / medicamento",
+        "ivermectina"
+      ],
+      [
+        "Tipo de manejo",
+        "medicamento"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "sanidade",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "sanidade",
+    "phrase": "Dei 5 ml de Bovitam em todas as novilhas",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "sanidade"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "Não informado"
+      ],
+      [
+        "Lote de corte",
+        "Lote 1"
+      ],
+      [
+        "Vaca leiteira",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Vacina / medicamento",
+        "Não informado"
+      ],
+      [
+        "Tipo de manejo",
+        "medicamento"
+      ],
+      [
+        "Observações",
+        "Aplicado em todas as novilhas"
+      ]
+    ],
+    "heading": "sanidade",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe o produto aplicado.",
+      "Indique explicitamente o lote ou os brincos dos animais que receberam o manejo."
+    ]
+  },
+  {
+    "category": "sanidade",
+    "phrase": "Vacinei o Lote 1 hoje",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "sanidade"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "Não informado"
+      ],
+      [
+        "Lote de corte",
+        "Lote 1"
+      ],
+      [
+        "Vaca leiteira",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Vacina / medicamento",
+        "Não informado"
+      ],
+      [
+        "Tipo de manejo",
+        "vacina"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "sanidade",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe o produto aplicado.",
+      "Informe o nome do produto.",
+      "Informe o nome da vacina aplicada."
+    ]
+  },
+  {
+    "category": "leite",
+    "phrase": "Produzi 42 litros de leite hoje",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "leite_total"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "42"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "leite total",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "leite",
+    "phrase": "A vaca Estrela deu 8 litros de manhã",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "leite_vaca"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "8"
+      ],
+      [
+        "Vaca leiteira",
+        "Estrela"
+      ],
+      [
+        "Descrição",
+        "Produção de leite pela vaca Estrela de manhã"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Turno",
+        "manhã"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "leite vaca",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe uma vaca leiteira ativa desta fazenda."
+    ]
+  },
+  {
+    "category": "leite",
+    "phrase": "Hoje de manhã deu 20 litros",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "leite_total"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "20"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "leite total",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Confirme se os litros são a produção de leite do tanque ou de uma vaca."
+    ]
+  },
+  {
+    "category": "reprodução",
+    "phrase": "A vaca Estrela pariu uma bezerra hoje",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "parto"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Vaca leiteira",
+        "Estrela"
+      ],
+      [
+        "Brinco da cria",
+        "Não informado"
+      ],
+      [
+        "Sexo da cria (macho/femea)",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "A vaca Estrela pariu uma bezerra hoje"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "parto",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe uma vaca leiteira ativa desta fazenda.",
+      "Informe o brinco da cria antes de confirmar o parto.",
+      "Informe se a cria é macho ou fêmea.",
+      "Informe o brinco da cria antes de registrar o parto."
+    ]
+  },
+  {
+    "category": "reprodução",
+    "phrase": "A vaca Princesa tá prenha",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "prenhez"
+      ],
+      [
+        "Data",
+        "Não informado"
+      ],
+      [
+        "Vaca leiteira",
+        "Princesa"
+      ],
+      [
+        "Previsão de parto",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "prenhez",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe uma data válida.",
+      "Informe uma vaca leiteira ativa desta fazenda."
+    ]
+  },
+  {
+    "category": "reprodução",
+    "phrase": "A previsão de parto da Mimosa é mês que vem",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "prenhez"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Vaca leiteira",
+        "Mimosa"
+      ],
+      [
+        "Previsão de parto",
+        "2026-10"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "prenhez",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe uma vaca leiteira ativa desta fazenda.",
+      "Informe a previsão de parto no formato de data.",
+      "Informe a data exata; uma referência como mês ou semana que vem não define o dia."
+    ]
+  },
+  {
+    "category": "venda/saída",
+    "phrase": "Vendi a B205 por 4500 reais",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "venda"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "4500"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "Não informado"
+      ],
+      [
+        "Brinco do animal",
+        "B205"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "venda",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Esta confirmação encerra o animal e gera o histórico de saída. Confira cuidadosamente."
+    ]
+  },
+  {
+    "category": "venda/saída",
+    "phrase": "Vendi 3 novilhas por 12 mil",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "venda"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "12000"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "3"
+      ],
+      [
+        "Brinco do animal",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "venda",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe o brinco de um animal de corte ativo desta fazenda.",
+      "Esta confirmação encerra o animal e gera o histórico de saída. Confira cuidadosamente.",
+      "Identifique cada animal e informe se o valor é por cabeça ou total.",
+      "Informe o brinco e o valor total da venda do animal."
+    ]
+  },
+  {
+    "category": "venda/saída",
+    "phrase": "A B189 saiu hoje",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "mover_lote"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "B189"
+      ],
+      [
+        "Lote de corte",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Animal B189 saiu hoje"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "mover lote",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Selecione um lote de corte ativo desta fazenda.",
+      "Informe o tipo de saída, ou esclareça se deseja apenas registrar uma pesagem."
+    ]
+  },
+  {
+    "category": "manutenção",
+    "phrase": "Gastei 200 reais consertando a cerca",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "200"
+      ],
+      [
+        "Categoria",
+        "conserto cerca"
+      ],
+      [
+        "Centro de custo",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "conserto da cerca"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "manutenção",
+    "phrase": "Comprei arame pro piquete 2",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "estoque_entrada"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "Não informado"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "Não informado"
+      ],
+      [
+        "Item de estoque",
+        "arame"
+      ],
+      [
+        "Descrição",
+        "para piquete 2"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Unidade",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "estoque entrada",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Para cadastrar um novo item, informe nome e unidade (por exemplo, saco).",
+      "Informe peso, litros ou quantidade.",
+      "Informe a quantidade e unidade do item, ou o valor se quer registrar apenas uma despesa.",
+      "Informe a quantidade e a unidade adquiridas."
+    ]
+  },
+  {
+    "category": "manutenção",
+    "phrase": "Gastei 250 reais na manutenção do trator",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "250"
+      ],
+      [
+        "Categoria",
+        "manutenção"
+      ],
+      [
+        "Centro de custo",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "manutenção do trator"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  },
+  {
+    "category": "ambiguidade",
+    "phrase": "Gastei 150 no lote 1",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "150"
+      ],
+      [
+        "Categoria",
+        "Não informado"
+      ],
+      [
+        "Centro de custo",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "lote 1"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Diga com o que foi o gasto; o lote sozinho não define a categoria."
+    ]
+  },
+  {
+    "category": "ambiguidade",
+    "phrase": "Botei 200 na B189",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "pesagem_animal"
+      ],
+      [
+        "Data",
+        "Não informado"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "200"
+      ],
+      [
+        "Brinco do animal",
+        "B189"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "pesagem animal",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe uma data válida.",
+      "Diga o que foi colocado e a unidade; o brinco sozinho não define a operação.",
+      "Informe o peso atual medido em kg."
+    ]
+  },
+  {
+    "category": "ambiguidade",
+    "phrase": "Deu 40 hoje",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "observacao"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Deu 40 hoje"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Deu 40 hoje"
+      ]
+    ],
+    "heading": "observacao",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe o brinco de um animal ativo desta fazenda.",
+      "Diga o que foi medido e a unidade."
+    ]
+  },
+  {
+    "category": "ambiguidade",
+    "phrase": "Apliquei 5 ml",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "sanidade"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Brinco do animal",
+        "Não informado"
+      ],
+      [
+        "Lote de corte",
+        "Lote 1"
+      ],
+      [
+        "Vaca leiteira",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Vacina / medicamento",
+        "Não informado"
+      ],
+      [
+        "Tipo de manejo",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "sanidade",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe o produto aplicado.",
+      "Informe o produto aplicado e o animal ou lote."
+    ]
+  },
+  {
+    "category": "ambiguidade",
+    "phrase": "A vaca produziu 8",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "leite_vaca"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Quantidade / kg / litros",
+        "8"
+      ],
+      [
+        "Vaca leiteira",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Não informado"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Turno",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "leite vaca",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "O registro exige revisão ou esclarecimento. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": [
+      "Informe uma vaca leiteira ativa desta fazenda.",
+      "Informe o nome ou brinco da vaca, ou diga que é o total do tanque.",
+      "Informe o nome ou brinco da vaca."
+    ]
+  },
+  {
+    "category": "financeiro",
+    "phrase": "Paguei 1700 reais de salário para o funcionário",
+    "confirmDisabled": true,
+    "fields": [
+      [
+        "Operação",
+        "despesa"
+      ],
+      [
+        "Data",
+        "2026-09-27"
+      ],
+      [
+        "Valor total (R$)",
+        "1700"
+      ],
+      [
+        "Categoria",
+        "salário"
+      ],
+      [
+        "Centro de custo",
+        "Não informado"
+      ],
+      [
+        "Descrição",
+        "Pagamento de salário para funcionário"
+      ],
+      [
+        "Fornecedor, comprador ou responsável",
+        "Não informado"
+      ],
+      [
+        "Observações",
+        "Não informado"
+      ]
+    ],
+    "heading": "despesa",
+    "message": [
+      "Revise os campos extraídos. Campos não informados ficam em branco.",
+      "Os campos passariam pela validação. Este teste não criou rascunho e não pode ser confirmado."
+    ],
+    "warnings": []
+  }
+]
