@@ -13,7 +13,7 @@ export function RegisterForm({history=[],lots=[],centers=[]}:{history?:HistoryRo
  async function finish(action:'confirmar'|'cancelar'){
   if(!draft||!fields)return;setBusy(true);setMessage('');try{
    const data=await send('/api/ai/confirm',{id:draft.id,action,fields,critical});
-   if(data.status==='confirmado'){setMessage('Registro confirmado e salvo na fazenda.');window.location.reload()}else{setMessage('Prévia cancelada. Nada foi gravado.');setRecent(prev=>[{id:draft.id,texto_original:text,estado:'cancelado',criado_em:new Date().toISOString()},...prev]);setDraft(null);setFields(null)}
+   if(data.status==='confirmado'){setMessage('Registro confirmado e salvo na fazenda.');window.location.reload()}else{setMessage('Prévia cancelada. Nada foi gravado.');setRecent(prev=>prev.some(row=>row.id===draft.id)?prev.map(row=>row.id===draft.id?{...row,estado:'cancelado'}:row):[{id:draft.id,texto_original:text,estado:'cancelado',criado_em:new Date().toISOString()},...prev]);setDraft(null);setFields(null)}
   }catch(e){setMessage(e instanceof Error?e.message:'Não foi possível finalizar.')}finally{setBusy(false)}
  }
  async function transcribe(file:File){
