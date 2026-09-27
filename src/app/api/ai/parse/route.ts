@@ -20,7 +20,7 @@ export async function POST(request:NextRequest){
    const code=body.error?.code||body.error?.type||'desconhecido';
    console.error('OpenAI parse rejeitou a chamada',{status:upstream.status,code});
    if(upstream.status===401)return json({error:'A OpenAI recusou a chave configurada no servidor. Verifique a variável na Vercel e faça novo deploy.',diagnostico:'autenticacao'},502);
-   if(upstream.status===429)return json({error:'A OpenAI informou limite de uso ou créditos insuficientes na conta da API.',diagnostico:'limite'},502);
+   if(upstream.status===429)return json({error:code==='insufficient_quota'?'A conta da API OpenAI está sem créditos ou com limite de gastos atingido. Verifique o faturamento no painel da OpenAI.':'A OpenAI atingiu um limite temporário de requisições. Aguarde e tente novamente.',diagnostico:code},502);
    if(upstream.status===400)return json({error:'A OpenAI recusou o formato da interpretação. Estamos ajustando a integração.',diagnostico:code},502);
    return json({error:'Não foi possível consultar a IA. Tente novamente mais tarde.',diagnostico:code},502);
   }
