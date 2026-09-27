@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { aiContext, prepare } from '@/lib/ai-register';
+import { vocabularyIssues } from '@/lib/ai-vocabulary';
 import { revalidatePath } from 'next/cache';
 export const runtime='nodejs';
 const json=(body:object,status=200)=>NextResponse.json(body,{status,headers:{'Cache-Control':'no-store'}});
@@ -9,7 +10,7 @@ export async function POST(request:NextRequest){
   if(Number(request.headers.get('content-length')||0)>7000)return json({error:'Prévia muito longa.'},413);
   const ctx=await aiContext();const body=await request.json();const id=String(body.id||'');
   if(!/^[0-9a-f-]{36}$/i.test(id))return json({error:'Rascunho inválido.'},400);
-  const {data:draft,error:readError}=await ctx.db.from('registros_ia').select('id,resultado,estado,criado_em').eq('id',id).eq('fazenda_id',ctx.farm.id).eq('usuario_id',ctx.user.id).maybeSingle();
+  const {data:draft,error:readError}=await ctx.db.from('registros_ia').select('id,resultado,estado,criado_em,texto_original').eq('id',id).eq('fazenda_id',ctx.farm.id).eq('usuario_id',ctx.user.id).maybeSingle();
   if(readError||!draft||draft.estado!=='pendente'||Date.now()-Date.parse(draft.criado_em)>86400000)return json({error:'Rascunho indisponível ou expirado.'},409);
   if(body.action==='cancelar'){
    const {error}=await ctx.db.rpc('finalizar_registro_ia',{p_id:id,p_acao:'cancelar',p_dados:{}});
@@ -19,6 +20,8 @@ export async function POST(request:NextRequest){
   const fields=body.fields||draft.resultado;
   if(fields.tipo!==draft.resultado.tipo)return json({error:'Para mudar o tipo de operação, escreva uma nova frase.'},400);
   const checked=prepare(fields,ctx);
+  const issues=vocabularyIssues(draft.texto_original,checked.fields,ctx.animals.filter(x=>x.sistema==='leite').map(x=>x.nome||''));
+  if(issues.length)return json({error:issues[0],...checked,warnings:[...checked.warnings,...issues],canConfirm:false},422);
   if(!checked.canConfirm)return json({error:'Revise os campos indicados antes de confirmar.',...checked},422);
   if(['venda','abate','morte'].includes(checked.fields.tipo)&&body.critical!==true)return json({error:'Confirme expressamente a saída do animal.'},422);
   const {data,error}=await ctx.db.rpc('finalizar_registro_ia',{p_id:id,p_acao:'confirmar',p_dados:checked.record});
