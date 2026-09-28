@@ -1,6 +1,7 @@
 import { brazilToday, daysBetween, exitEconomics, healthAlerts, lotWeights, weightStats, type Animal, type Weight } from '@/lib/corte';
 import { milkDailyTotals, money, monthBounds, number } from '@/lib/farm';
 import { createClient } from '@/lib/supabase/server';
+import { individualAnswer } from '@/lib/farm-individual';
 
 type Db = Awaited<ReturnType<typeof createClient>>;
 type Row = Record<string, unknown>;
@@ -18,6 +19,8 @@ async function rows(db:Db,farmId:string,table:string,columns:string):Promise<Row
 }
 export async function farmAnswer(db:Db,farmId:string,question:string):Promise<FarmAnswer> {
  const q=norm(question),{start,end}=monthBounds(),today=brazilToday();
+ const individual=await individualAnswer(db,farmId,question);
+ if(individual)return individual;
  const before30=new Date(Date.parse(`${today}T12:00:00Z`)-30*86400000).toISOString().slice(0,10);
  const is=(pattern:RegExp)=>pattern.test(q);
  // Resolve human-readable lot names only against this authenticated farm; never accept model-supplied IDs.

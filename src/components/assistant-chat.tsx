@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/icons';
 type Message={role:'user'|'assistant';text:string;metric?:string;label?:string};
-const suggestions=['Peso médio do Lote 1','Gastos do mês','Estoque baixo','Vacas perto de parir','Animais sem pesagem recente','Quem precisa de reforço de vacina?'];
+const suggestions=['Animal mais pesado','Quanto pesa a B189?','5 animais mais pesados','Peso médio do Lote 1','Qual vaca produz mais?','Vacas perto de parir','Crias mamando','Gastos do mês','Estoque baixo','Animais sem pesagem recente'];
 export function AssistantChat({storageKey}:{storageKey:string}){
  const key=`fazenda-assistant:${storageKey}`;
  const [messages,setMessages]=useState<Message[]>([]),[text,setText]=useState(''),[busy,setBusy]=useState(false),[recording,setRecording]=useState(false),[note,setNote]=useState('');
