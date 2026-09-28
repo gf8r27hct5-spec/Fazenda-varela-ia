@@ -128,6 +128,7 @@ async function dairyAnswer(db:Db,farmId:string,q:string,today:string,calfQuestio
  const foundCalf=findNamed(q,calves),foundCow=findNamed(q,cows);
  if(foundCalf.ambiguous||foundCow.ambiguous&&!/compar/.test(q))return say('Encontrei nomes repetidos. Informe o brinco ou a identificação completa.');
  const cow=foundCow.animal,calf=foundCalf.animal;
+ if(!calfQuestion&&!cow&&/ultimo parto|quantas crias/.test(q))return say(cows.length?'Não identifiquei essa vaca leiteira. Informe o nome ou brinco cadastrado.':'Não há vacas leiteiras cadastradas para consultar partos.');
  if(calfQuestion){
   if(/qual vaca.*bezerro.*mamando/.test(q)){const mothers=cows.filter(x=>calves.some(c=>c.mae_id===x.id&&c.situacao_cria==='mamando'));return say(mothers.length?`${mothers.length} vacas têm cria mamando: ${mothers.map(identity).join(', ')}.`:'Não há vaca vinculada a cria mamando.');}
   if(/qual e a mae|quem e a mae|mae da cria|mae d[ao] bezer/.test(q))return calf?say(`A mãe de ${identity(calf)} é ${identity(cows.find(x=>x.id===calf.mae_id)||{identificacao:'não informada'})}.`):say('Não identifiquei a cria. Informe nome ou brinco.');
