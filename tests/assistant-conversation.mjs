@@ -17,5 +17,5 @@ assert.equal((await conversationalAnswer(db,farm,'E quanto falta para a meta?',[
 assert.equal(historySeen[1][1].text,'B205, com 293 kg.');
 response='B205 pesa 999 kg.';
 assert.match((await conversationalAnswer(db,farm,'Quanto pesa B205?',[])).answer,/Não consegui conferir/);
-assert.deepEqual([...new Set(calls)].sort(),['animais','lotes','pesagens']);
+assert.deepEqual([...new Set(calls)].sort(),['animais','lotes','pesagens','transacoes']);
 console.log('Planejamento livre, contexto de conversa, consultas por fazenda e bloqueio de número inventado: OK');
