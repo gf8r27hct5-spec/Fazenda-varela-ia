@@ -90,7 +90,7 @@ async function beefAnswer(db:Db,farmId:string,q:string,today:string):Promise<Rep
  if(!pool.length)return say('Não há animais de corte ativos nesse lote.');
  if(/sem pesagem recente|nao tem pesagem recente|sem peso recente|ha mais tempo sem pesagem|ultima pesagem mais recente/.test(q)){
   const ordered=[...pool].sort((a,b)=>text(dateOf(a)).localeCompare(text(dateOf(b))));
-  if(/ha mais tempo|mais recente/.test(q)){const a=/mais recente/.test(q)?ordered.at(-1)!:ordered[0];return latest(a)?say(`${identity(a)}: última pesagem em ${formatDate(latest(a)?.data_pesagem)}, ${number(Number(latest(a)?.peso_kg),1)} kg.`):say(`${identity(a)} não possui pesagem registrada.`);}
+  if(/ha mais tempo|mais recente/.test(q)){const recent=/mais recente/.test(q),a=recent?ordered.at(-1)!:ordered[0],ties=ordered.filter(x=>text(dateOf(x))===text(dateOf(a)));if(ties.length>1)return say(`${ties.length} animais compartilham a ${recent?'pesagem mais recente':'data de pesagem mais antiga'} (${latest(a)?formatDate(latest(a)?.data_pesagem):'sem data registrada'}): ${ties.slice(0,10).map(identity).join(', ')}${ties.length>10?' e outros':''}.`);return latest(a)?say(`${identity(a)}: última pesagem em ${formatDate(latest(a)?.data_pesagem)}, ${number(Number(latest(a)?.peso_kg),1)} kg.`):say(`${identity(a)} não possui pesagem registrada.`);}
   const since=new Date(`${today}T12:00:00Z`);since.setUTCDate(since.getUTCDate()-30);const stale=pool.filter(a=>!latest(a)||text(latest(a)?.data_pesagem)<since.toISOString().slice(0,10));
   return say(stale.length?`${stale.length} animais sem pesagem nos últimos 30 dias: ${stale.slice(0,20).map(identity).join(', ')}${stale.length>20?' e outros':''}.`:'Todos os animais ativos têm pesagem nos últimos 30 dias.');
  }

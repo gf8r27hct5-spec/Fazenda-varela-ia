@@ -61,6 +61,7 @@ const cases=[
  ['Quantas crias a Mimosa já teve?','1 cria']
 ];
 cases.push(['Qual foi o último parto da Vaca Inexistente?','Não identifiquei essa vaca leiteira']);
+cases.push(['Qual animal está há mais tempo sem pesagem?','2 animais compartilham a data de pesagem mais antiga']);
 let failed=0;
 for(const [question,expected] of cases){const result=await individual.individualAnswer(db,farmId,question);if(!result?.answer.includes(expected)){failed++;console.error(question,'=>',result?.answer,'(esperado:',expected,')')}}
 assert.equal(failed,0,`${failed} de ${cases.length} casos falharam`);
