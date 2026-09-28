@@ -437,3 +437,96 @@ export async function deleteCutLot(form: FormData) {
   if (error) redirect(`/lotes/${id}?acao=excluir&erro=1`);
   revalidatePath('/painel'); done('rebanho');
 }
+
+// Shared, confirmed cleanup for records that do not have a dedicated detail page yet.
+// The table name is never trusted: it is checked against this allow-list and every
+// mutation is scoped to the authenticated user's farm.
+export async function deleteFarmRecord(form: FormData) {
+  const { db, id: farmId } = await context();
+  const table = field(form, 'table'), recordId = field(form, 'id'), confirmation = field(form, 'confirmacao');
+  const allowed = ['transacoes','pesagens','producao_leite','manejos'] as const;
+  if (!allowed.includes(table as typeof allowed[number]) || !uuid(recordId) || confirmation !== 'EXCLUIR') redirect('/painel?erro=1');
+  const destination: Record<string,string> = {transacoes:'financeiro',pesagens:'pesagens',producao_leite:'leite',manejos:'sanidade'};
+  const { data: record } = await db.from(table).select('*').eq('id', recordId).eq('fazenda_id', farmId).maybeSingle();
+  if (!record) redirect('/painel?erro=1');
+  if (table === 'transacoes' && record.origem === 'saida') redirect('/painel/financeiro?erro=1');
+  const { error } = await db.from(table).delete().eq('id', recordId).eq('fazenda_id', farmId);
+  if (error) redirect(`/painel/${destination[table]}?erro=1`);
+  revalidatePath('/painel'); revalidatePath('/painel/financeiro'); revalidatePath('/painel/rebanho'); revalidatePath('/painel/pesagens'); revalidatePath('/painel/leite'); revalidatePath('/painel/estoque'); revalidatePath('/painel/sanidade');
+  if (record.animal_id) revalidatePath(`/animais/${record.animal_id}`);
+  if (record.lote_id) revalidatePath(`/lotes/${record.lote_id}`);
+  redirect(`/painel/${destination[table]}?salvo=exclusao`);
+}
+
+export async function archiveFarmAnimal(form: FormData) {
+  const { db, id: farmId } = await context();
+  const id = field(form, 'id');
+  if (!uuid(id) || field(form, 'confirmacao') !== 'ARQUIVAR') redirect('/painel/leite?erro=1');
+  const {error}=await db.from('animais').update({status:'inativo'}).eq('id',id).eq('fazenda_id',farmId).eq('sistema','leite').eq('status','ativo');
+  if (error) redirect('/painel/leite?erro=1');
+  revalidatePath('/painel'); revalidatePath('/painel/leite'); revalidatePath('/painel/rebanho'); revalidatePath(`/animais/${id}`);
+  redirect('/painel/leite?salvo=arquivado');
+}
+
+export async function archiveFarmRecord(form:FormData){
+  const {db,id:farmId}=await context(),table=field(form,'table'),id=field(form,'id');
+  if(!['estoque','centros_custo'].includes(table)||!uuid(id)||field(form,'confirmacao')!=='ARQUIVAR')redirect('/painel?erro=1');
+  const destination=table==='estoque'?'estoque':'financeiro';
+  const {error}=await db.from(table).update({ativo:false}).eq('id',id).eq('fazenda_id',farmId);
+  if(error)redirect(`/painel/${destination}?erro=1`);
+  revalidatePath('/painel');revalidatePath(`/painel/${destination}`);
+  redirect(`/painel/${destination}?salvo=arquivado`);
+}
+
+export async function editFarmRecord(form:FormData){
+  const {db,id:farmId}=await context(),table=field(form,'table'),id=field(form,'id');
+  const route:Record<string,string>={transacoes:'financeiro',centros_custo:'financeiro',pesagens:'pesagens',producao_leite:'leite',manejos:'sanidade',estoque:'estoque'};
+  if(!route[table]||!uuid(id))redirect('/painel?erro=1');
+  const {data:record}=await db.from(table).select('*').eq('id',id).eq('fazenda_id',farmId).maybeSingle();
+  if(!record||table==='transacoes'&&record.origem==='saida')redirect(`/painel/${route[table]}?erro=1`);
+  const numeric=(key:string,required=false)=>{const v=field(form,key);if(!v&&!required)return null;const parsed=Number(v.replace(',','.'));return Number.isFinite(parsed)&&parsed>=(required?0.000001:0)?parsed:null};
+  const dated=(key:string)=>{const v=field(form,key);return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:null};
+  let changes:Record<string,string|number|boolean|null>={};
+  if(table==='transacoes'){
+    const amount=numeric('valor',true),date=dated('data_competencia'),description=field(form,'descricao');
+    if(amount===null||!date||!description||description.length>180)redirect(`/painel/${route[table]}?erro=1`);
+    changes={valor:amount,data_competencia:date,descricao:description,categoria:field(form,'categoria')||'Outros',status:field(form,'status')==='pendente'?'pendente':'pago'};
+  }else if(table==='producao_leite'){
+    const liters=numeric('litros',true),date=dated('data_producao'),turn=field(form,'turno'),price=numeric('preco_litro');
+    if(liters===null||!date||price===null&&field(form,'preco_litro')||!['','manha','tarde','noite','total_dia'].includes(turn))redirect('/painel/leite?erro=1');
+    changes={litros:liters,data_producao:date,turno:turn||null,preco_litro:price,observacoes:field(form,'observacoes')||null};
+  }else if(table==='pesagens'){
+    const weight=numeric('peso_kg',true),date=dated('data_pesagem');
+    if(weight===null||!date)redirect('/painel/pesagens?erro=1');
+    changes={peso_kg:weight,data_pesagem:date,responsavel:field(form,'responsavel')||null,observacoes:field(form,'observacoes')||null};
+  }else if(table==='manejos'){
+    const product=field(form,'produto'),date=dated('data_manejo');
+    if(!product||!date)redirect('/painel/sanidade?erro=1');
+    changes={produto:product,data_manejo:date,dose:field(form,'dose')||null,proxima_data:dated('proxima_data'),data_fim_carencia:dated('data_fim_carencia'),responsavel:field(form,'responsavel')||null,observacoes:field(form,'observacoes')||null};
+  }else if(table==='estoque'){
+    const name=field(form,'nome'),unit=field(form,'unidade'),quantity=numeric('quantidade_atual'),minimum=numeric('estoque_minimo'),consumption=numeric('consumo_medio_dia');
+    if(!name||!unit||[quantity,minimum,consumption].some(v=>v===null)&&['quantidade_atual','estoque_minimo','consumo_medio_dia'].some(key=>field(form,key)&&numeric(key)===null))redirect('/painel/estoque?erro=1');
+    changes={nome:name,unidade:unit,categoria:field(form,'categoria')||null,quantidade_atual:quantity??0,estoque_minimo:minimum,consumo_medio_dia:consumption,ativo:field(form,'ativo')==='sim'};
+  }else if(table==='centros_custo'){
+    const name=field(form,'nome');if(!name||name.length>120)redirect('/painel/financeiro?erro=1');
+    changes={nome:name,descricao:field(form,'descricao')||null,ativo:field(form,'ativo')==='sim'};
+  }
+  const {error}=await db.from(table).update(changes).eq('id',id).eq('fazenda_id',farmId);
+  if(error)redirect(`/painel/${route[table]}?erro=1`);
+  revalidatePath('/painel');revalidatePath(`/painel/${route[table]}`);
+  if(record.animal_id)revalidatePath(`/animais/${record.animal_id}`);
+  if(record.lote_id)revalidatePath(`/lotes/${record.lote_id}`);
+  redirect(`/painel/${route[table]}?salvo=edicao`);
+}
+
+export async function editDairyAnimal(form:FormData){
+ const {db,id:farmId}=await context(),id=field(form,'id'),tag=field(form,'identificacao'),status=field(form,'status');
+ if(!uuid(id)||!tag||tag.length>80||!['ativo','inativo'].includes(status))redirect('/painel/leite?erro=1');
+ const {data:animal}=await db.from('animais').select('id,categoria').eq('id',id).eq('fazenda_id',farmId).eq('sistema','leite').maybeSingle();
+ if(!animal)redirect('/painel/leite?erro=1');
+ const weight=field(form,'peso_atual');if(weight&&(!Number.isFinite(Number(weight))||Number(weight)<0))redirect(`/painel/editar/animais/${id}?erro=1`);
+ const {error}=await db.from('animais').update({identificacao:tag,nome:field(form,'nome')||null,raca:field(form,'raca')||null,peso_atual:weight?Number(weight):null,observacoes:field(form,'observacoes')||null,status}).eq('id',id).eq('fazenda_id',farmId).eq('sistema','leite');
+ if(error)redirect(`/painel/editar/animais/${id}?erro=1`);
+ revalidatePath('/painel');revalidatePath('/painel/leite');revalidatePath('/painel/reproducao');revalidatePath(`/animais/${id}`);
+ redirect(`/animais/${id}?salvo=1`);
+}

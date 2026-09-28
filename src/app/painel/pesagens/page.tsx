@@ -3,6 +3,7 @@ import { AppShell, Card, Empty, Heading, Stat } from '@/components/app-shell';
 import { TrendChart } from '@/components/charts';
 import { date, farmContext, number } from '@/lib/farm';
 import { lotWeights, weightStats } from '@/lib/corte';
+import { RecordActions } from '@/components/record-actions';
 export const dynamic='force-dynamic';
 export default async function Weighings({searchParams}:{searchParams:Promise<{lote?:string;animal?:string;salvo?:string;erro?:string}>}){
  const query=await searchParams,{db,farm}=await farmContext();
@@ -20,6 +21,6 @@ export default async function Weighings({searchParams}:{searchParams:Promise<{lo
   <div className="module-quick-actions"><Link className="module-action" href="/painel/novo/pesagem">+ Pesagem individual</Link>{chosenLot&&<Link className="module-action secondary" href={`/lotes/${chosenLot.id}#pesagem-lote`}>+ Registrar pesagem do lote</Link>}</div>
   {(stats||group)&&<div className="stat-grid"><Stat label="Peso atual/médio" value={stats?.current!=null?`${number(stats.current,1)} kg`:group?.average!=null?`${number(group.average,1)} kg`:'—'}/><Stat label="GMD recente" value={stats?.recentGmd!=null?`${number(stats.recentGmd,2)} kg/dia`:group?.gmd!=null?`${number(group.gmd,2)} kg/dia`:'—'}/><Stat label="Pesados recentemente" value={group?`${group.recent} de ${animals.filter(a=>a.lote_id===chosenLot!.id&&a.status==='ativo').length}`:'—'}/></div>}
   {(stats||group)&&<Card title="Evolução de peso"><TrendChart points={chart} unit="kg"/></Card>}
-  <Card title="Histórico completo">{rows.length?rows.map((row,index)=>{const animal=animals.find(a=>a.id===row.animal_id);const prior=animal?weightStats(animal,rows).entries.find(x=>x.data_pesagem===row.data_pesagem&&Number(x.peso_kg)===Number(row.peso_kg)):null;return <div className="data-row" key={row.id}><div><strong>{number(Number(row.peso_kg),1)} kg · {animal?.identificacao||'Média do lote'}</strong><small>{date(row.data_pesagem)}{row.responsavel?` · ${row.responsavel}`:''}{row.observacoes?` · ${row.observacoes}`:''}</small></div><span>{prior?.gmd!=null?`${number(prior.gmd,2)} kg/dia`:index===0?'—':'—'}</span></div>}):<Empty title="Sem pesagens" description="Registre o primeiro peso para começar a acompanhar a evolução."/>}</Card>
+  <Card title="Histórico completo">{rows.length?rows.map((row,index)=>{const animal=animals.find(a=>a.id===row.animal_id);const prior=animal?weightStats(animal,rows).entries.find(x=>x.data_pesagem===row.data_pesagem&&Number(x.peso_kg)===Number(row.peso_kg)):null;return <div className="data-row" key={row.id}><div><strong>{number(Number(row.peso_kg),1)} kg · {animal?.identificacao||'Média do lote'}</strong><small>{date(row.data_pesagem)}{row.responsavel?` · ${row.responsavel}`:''}{row.observacoes?` · ${row.observacoes}`:''}</small></div><span className="row-end">{prior?.gmd!=null?`${number(prior.gmd,2)} kg/dia`:index===0?'—':'—'}<RecordActions table="pesagens" id={row.id} label={`${row.peso_kg} kg`}/></span></div>}):<Empty title="Sem pesagens" description="Registre o primeiro peso para começar a acompanhar a evolução."/>}</Card>
  </AppShell>;
 }
