@@ -10,7 +10,7 @@ const data={animais:[{fazenda_id:farm,id:'b205',sistema:'corte',identificacao:'B
 const db={from(table){calls.push(table);return {select(){return this},eq(field,id){assert.equal(field,'fazenda_id');assert.equal(id,farm);return this},limit(){return Promise.resolve({data:data[table]||[],error:null})}}}};
 let response='B205 tem 293 kg.';
 async function fetch(_url,options){const body=JSON.parse(options.body),input=JSON.parse(body.input);if(body.text.format.name==='plano_consulta'){historySeen.push(input.historico);return {ok:true,json:async()=>({output:[{content:[{type:'output_text',text:JSON.stringify({standalone:input.pergunta.includes('quanto falta')?'Quanto falta para B205 chegar na meta?':input.pergunta,topics:['corte'],from:null,to:null,focus:'B205'})}]}]})}}return {ok:true,json:async()=>({output:[{content:[{type:'output_text',text:JSON.stringify({answer:response})}]}]})}}
-const {conversationalAnswer}=load('../src/lib/farm-conversation.ts',{'@/lib/corte':corte},{fetch,process:{env:{OPENAI_API_KEY:'test'}}});
+const {conversationalAnswer}=load('../src/lib/farm-conversation.ts',{'@/lib/corte':corte,'@/lib/farm-alerts':{getFarmAlerts:async()=>({alerts:[]})}},{fetch,process:{env:{OPENAI_API_KEY:'test'}}});
 assert.equal((await conversationalAnswer(db,farm,'Qual animal é mais pesado?',[])).answer,'B205 tem 293 kg.');
 response='Faltam 97 kg para B205 chegar aos 390 kg.';
 assert.equal((await conversationalAnswer(db,farm,'E quanto falta para a meta?',[{role:'user',text:'Qual animal é mais pesado?'},{role:'assistant',text:'B205, com 293 kg.'}])).answer,response);
