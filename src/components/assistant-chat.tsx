@@ -11,9 +11,19 @@ export function AssistantChat({storageKey}:{storageKey:string}){
  const history=useRef<Message[]>([]),busyRef=useRef(false),autoRef=useRef(false);
  const voiceContext=useRef<AudioContext|null>(null),voiceSource=useRef<AudioBufferSourceNode|null>(null),voiceBuffers=useRef<Map<number,AudioBuffer>>(new Map());
  const voiceRequest=useRef<AbortController|null>(null),playbackGeneration=useRef(0),playingIndex=useRef<number|null>(null);
+ const voiceChannel=useRef<BroadcastChannel|null>(null);
  useEffect(()=>{try{const saved=JSON.parse(sessionStorage.getItem(key)||'[]');if(Array.isArray(saved)){const valid=saved.filter(x=>x&&['user','assistant'].includes(x.role)&&typeof x.text==='string').slice(-30);setMessages(valid);history.current=valid}const enabled=localStorage.getItem(key+':audio')==='true';setAutoVoice(enabled);autoRef.current=enabled}catch{}},[key]);
  useEffect(()=>{history.current=messages;if(messages.length)try{sessionStorage.setItem(key,JSON.stringify(messages.slice(-30)))}catch{};end.current?.scrollIntoView({behavior:'smooth',block:'nearest'})},[messages,key]);
  useEffect(()=>()=>{playbackGeneration.current++;voiceRequest.current?.abort();recorder.current?.stream?.getTracks().forEach(t=>t.stop());try{voiceSource.current?.stop()}catch{};if('speechSynthesis' in window)window.speechSynthesis.cancel();void voiceContext.current?.close()},[]);
+ useEffect(()=>{
+  const channel=typeof BroadcastChannel==='undefined'?null:new BroadcastChannel('fazenda-assistant-voice');
+  voiceChannel.current=channel;
+  if(channel)channel.onmessage=()=>stopAudio();
+  const onVisibility=()=>{if(document.hidden)stopAudio()};
+  document.addEventListener('visibilitychange',onVisibility);
+  window.addEventListener('pagehide',stopAudio);
+  return()=>{document.removeEventListener('visibilitychange',onVisibility);window.removeEventListener('pagehide',stopAudio);channel?.close();voiceChannel.current=null};
+ },[]);
  // O iPhone só libera áudio após um toque. Desbloqueamos o contexto no toque do microfone,
  // antes das chamadas assíncronas de transcrição, consulta e síntese de voz.
  function unlockVoice(){try{const context=voiceContext.current?.state==='closed'?new AudioContext():voiceContext.current??new AudioContext();voiceContext.current=context;void context.resume().catch(()=>{});const silent=context.createBufferSource();silent.buffer=context.createBuffer(1,1,context.sampleRate);silent.connect(context.destination);silent.start()}catch{}}
@@ -22,6 +32,7 @@ export function AssistantChat({storageKey}:{storageKey:string}){
  async function speak(value:string,index:number){
   if(playingIndex.current===index){stopAudio();return}
   unlockVoice();stopAudio();
+  voiceChannel.current?.postMessage('stop');
   const generation=playbackGeneration.current;
   setPreparing(index);setNote('Preparando a resposta em áudio…');
   try{
